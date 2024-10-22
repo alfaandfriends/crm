@@ -13,8 +13,8 @@ import Card from '@/Components/Card.vue'
                 <Table>
                     <TableHeader class="bg-gray-100">
                         <TableRow>
-                            <TableHead class="px-4">Program</TableHead>
-                            <TableHead v-for="case_status, case_status_index in $page.props.case_status">{{ case_status.name }}</TableHead>
+                            <TableHead class="px-4"></TableHead>
+                            <TableHead v-for="progress, progress_index in $page.props.progress_status">{{ progress.name }}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
