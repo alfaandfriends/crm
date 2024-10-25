@@ -18,11 +18,8 @@ class PipelineController extends Controller
 {
     public function index(Request $request)
     {
-        $user_permissions    =   Inertia::getShared('can');
-        
         $pipelines  =   DB::table('crm_pipelines')
                             ->join('crm_school_types', 'crm_pipelines.school_type_id', '=', 'crm_school_types.id')
-                            ->join('crm_progress_percentage', 'crm_pipelines.progress_id', '=', 'crm_progress_percentage.id')
                             ->when(request('search'), function($query, $search) {
                                 $query->where('crm_pipelines.school_name', 'LIKE', "%".$search."%");
                             })
@@ -33,7 +30,6 @@ class PipelineController extends Controller
                                 'crm_pipelines.id',
                                 'crm_pipelines.school_name', 
                                 'crm_school_types.name as school_type', 
-                                'crm_progress_percentage.name as progress_percentage',
                                 'crm_pipelines.principal_name', 
                                 'crm_pipelines.principal_phone_number', 
                                 'crm_pipelines.school_address',)
@@ -50,7 +46,6 @@ class PipelineController extends Controller
         $lead_sources           =   DB::table('crm_lead_sources')->get();
         $school_types           =   DB::table('crm_school_types')->get();
         $pic_positions          =   DB::table('crm_pic_positions')->get();
-        $progress_percentage    =   DB::table('crm_progress_percentage')->get();
         $case_status            =   DB::table('crm_case_status')->get();
         $programs               =   DB::table('crm_programs')->get();
         
@@ -58,7 +53,6 @@ class PipelineController extends Controller
             'lead_sources'          => $lead_sources,
             'school_types'          => $school_types,
             'pic_positions'         => $pic_positions,
-            'progress_percentage'   => $progress_percentage,
             'case_status'           => $case_status,
             'programs'              => $programs
         ]);
@@ -73,7 +67,6 @@ class PipelineController extends Controller
             'address'                   => 'required',
             'principal_name'            => 'required',
             'principal_phone_number'    => 'required',
-            'progress_percentage'       => 'required',
         ],[
             'assign_to.required'                => 'The assignee field is required.',
             'school_type.required'              => 'The school type field is required.',
@@ -82,23 +75,22 @@ class PipelineController extends Controller
             'address.required'                  => 'The school address field is required.',
             'principal_name.required'           => 'The principal field is required.',
             'principal_phone_number.required'   => 'The principal phone number field is required.',
-            'progress_percentage.required'      => 'The progress percentage field is required.',
         ]);
-
+        
         try {
             DB::beginTransaction();
 
             if($request->file('quotation')){
                 $quotation_file         =   $request->file('quotation');
                 $quotation_file_name    =   date('Ymd_His').'_'.$quotation_file->getClientOriginalName();
-                $quotation_path         =   $quotation_file->storeAs('pipelines', $quotation_file_name);
+                $quotation_path         =   $quotation_file->storeAs('pipelines', $quotation_file_name, 'public');
                 $quotation_url          =   Storage::url($quotation_path);
             }
 
             if($request->file('contract')){
                 $contract_file          =   $request->file('contract');
                 $contract_file_name     =   date('Ymd_His').'_'.$contract_file->getClientOriginalName();
-                $contract_path          =   $contract_file->storeAs('pipelines', $contract_file_name);
+                $contract_path          =   $contract_file->storeAs('pipelines', $contract_file_name, 'public');
                 $contract_url           =   Storage::url($contract_path);
             }
 
@@ -116,7 +108,6 @@ class PipelineController extends Controller
                 'pic_phone_number'          =>  $request->pic_phone_number,
                 'pic_position_id'           =>  $request->pic_position,
                 'pic_email'                 =>  $request->pic_email,
-                'progress_id'               =>  $request->progress_percentage,
                 'quotation_file_name'       =>  $quotation_file_name ?? '',
                 'quotation_file_path'       =>  $quotation_url ?? '',
                 'contract_file_name'        =>  $contract_file_name ?? '',
@@ -124,26 +115,24 @@ class PipelineController extends Controller
                 'created_by'                =>  Auth::user()->ID
             ]);
 
-            if(count($request->case_status)){
-                foreach($request->case_status as $case_status){
-                    DB::table('crm_pipeline_case_status')->insert([
+            if(count($request->progress_status)){
+                foreach($request->progress_status as $progress_status){
+                    $progress_id = DB::table('crm_pipeline_progress')->insertGetId([
                         'pipeline_id'       =>  $pipeline_id,
-                        'case_status_id'    =>  $case_status['id'],
-                        'date'              =>  Carbon::parse($case_status['date']),
-                        'remark'            =>  $case_status['remark'],
+                        'case_status_id'    =>  $progress_status['case_status'],
+                        'date'              =>  Carbon::parse($progress_status['date']),
+                        'remark'            =>  $progress_status['remark'],
                         'created_by'        =>  Auth::user()->ID
                     ]);
-                }
-            }
 
-            if(count($request->signed_up_programs)){
-                foreach($request->signed_up_programs as $program){
-                    DB::table('crm_pipeline_programs')->insert([
-                        'pipeline_id'       =>  $pipeline_id,
-                        'program_id'        =>  $program['id'],
-                        'student_numbers'   =>  $program['student_numbers'],
-                        'created_by'        =>  Auth::user()->ID
-                    ]);
+                    foreach($progress_status['signed_up_programs'] as $program){
+                        DB::table('crm_pipeline_programs')->insert([
+                            'progress_id'       =>  $progress_id,
+                            'program_id'        =>  $program['id'],
+                            'student_numbers'   =>  $program['student_numbers'],
+                            'created_by'        =>  Auth::user()->ID
+                        ]);
+                    }
                 }
             }
                 
@@ -160,41 +149,68 @@ class PipelineController extends Controller
 
     public function edit($id)
     {
-        $pipeline_info              =   DB::table('crm_pipelines')
-                                            ->join('wpvt_users', 'crm_pipelines.assignee_user_id', '=', 'wpvt_users.id')
-                                            ->select('crm_pipelines.*', 'wpvt_users.display_name as assignee_name')
-                                            ->where('crm_pipelines.id', $id)
-                                            ->first();
+        $pipeline_info      =   DB::table('crm_pipelines')
+                                    ->join('wpvt_users', 'crm_pipelines.assignee_user_id', '=', 'wpvt_users.id')
+                                    ->select('crm_pipelines.*', 'wpvt_users.display_name as assignee_name')
+                                    ->where('crm_pipelines.id', $id)
+                                    ->first();
 
-        $pipeline_case_status_info  =   DB::table('crm_pipeline_case_status')
-                                            ->join('crm_case_status', 'crm_pipeline_case_status.case_status_id', '=', 'crm_case_status.id')
-                                            ->select('crm_pipeline_case_status.*', 'crm_case_status.name as case_status_name')
-                                            ->where('crm_pipeline_case_status.pipeline_id', $id)
-                                            ->get();
+        $progress_status    =   DB::table('crm_pipeline_programs')
+                                    ->join('crm_pipeline_progress', 'crm_pipeline_programs.progress_id', '=', 'crm_pipeline_progress.id')
+                                    ->join('crm_case_status', 'crm_pipeline_progress.case_status_id', '=', 'crm_case_status.id')
+                                    ->join('crm_programs', 'crm_pipeline_programs.program_id', '=', 'crm_programs.id')
+                                    ->select(
+                                        'crm_pipeline_progress.id as progress_id', 
+                                        'crm_pipeline_progress.case_status_id as case_status', 
+                                        'crm_case_status.name as case_status_name', 
+                                        'crm_pipeline_progress.date as date', 
+                                        'crm_pipeline_progress.remark as remark', 
+                                        'crm_pipeline_programs.program_id as program_id', 
+                                        'crm_programs.name as program_name', 
+                                        'crm_pipeline_programs.student_numbers as student_numbers', 
+                                    )
+                                    ->where('crm_pipeline_progress.pipeline_id', $id)
+                                    ->get();
 
-        $pipeline_programs_info     =   DB::table('crm_pipeline_programs')
-                                            ->join('crm_programs', 'crm_pipeline_programs.program_id', '=', 'crm_programs.id')
-                                            ->select('crm_pipeline_programs.*', 'crm_programs.name as program_name')
-                                            ->where('crm_pipeline_programs.pipeline_id', $id)
-                                            ->get();
+        $collection = collect($progress_status);
 
-        $lead_sources               =   DB::table('crm_lead_sources')->get();
-        $school_types               =   DB::table('crm_school_types')->get();
-        $pic_positions              =   DB::table('crm_pic_positions')->get();
-        $progress_percentage        =   DB::table('crm_progress_percentage')->get();
-        $case_status                =   DB::table('crm_case_status')->get();
-        $programs                   =   DB::table('crm_programs')->get();
+        $pipeline_progress = $collection->groupBy('progress_id')->map(function ($items, $index) {
+            $firstItem = $items->first();
+        
+            $signedUpPrograms = $items->map(function ($item) {
+                return [
+                    'id' => $item->program_id,
+                    'name' => $item->program_name,
+                    'student_numbers' => $item->student_numbers
+                ];
+            });
+        
+            return [
+                'progress_id' => $firstItem->progress_id,
+                'case_status' => $firstItem->case_status,
+                'case_status_name' => $firstItem->case_status_name,
+                'date' => $firstItem->date,
+                'remark' => $firstItem->remark,
+                'signed_up_programs' => $signedUpPrograms->all(),
+            ];
+        });
+        
+        $pipeline_progress = $pipeline_progress->values();
+
+        $lead_sources   =   DB::table('crm_lead_sources')->get();
+        $school_types   =   DB::table('crm_school_types')->get();
+        $pic_positions  =   DB::table('crm_pic_positions')->get();
+        $case_status    =   DB::table('crm_case_status')->get();
+        $programs       =   DB::table('crm_programs')->get();
 
         return Inertia::render('Pipelines/Edit',[
-            'pipeline_info'             => $pipeline_info,
-            'pipeline_case_status_info' => $pipeline_case_status_info,
-            'pipeline_programs_info'    => $pipeline_programs_info,
-            'lead_sources'              => $lead_sources,
-            'school_types'              => $school_types,
-            'pic_positions'             => $pic_positions,
-            'progress_percentage'       => $progress_percentage,
-            'case_status'               => $case_status,
-            'programs'                  => $programs
+            'pipeline_info'     => $pipeline_info,
+            'pipeline_progress' => $pipeline_progress,
+            'lead_sources'      => $lead_sources,
+            'school_types'      => $school_types,
+            'pic_positions'     => $pic_positions,
+            'case_status'       => $case_status,
+            'programs'          => $programs
         ]);
     }
 
@@ -206,7 +222,6 @@ class PipelineController extends Controller
             'address'                   => 'required',
             'principal_name'            => 'required',
             'principal_phone_number'    => 'required',
-            'progress_percentage'       => 'required',
         ],[
             'assign_to.required'                => 'The assignee field is required.',
             'school_type.required'              => 'The school type field is required.',
@@ -215,7 +230,6 @@ class PipelineController extends Controller
             'address.required'                  => 'The school address field is required.',
             'principal_name.required'           => 'The principal field is required.',
             'principal_phone_number.required'   => 'The principal phone number field is required.',
-            'progress_percentage.required'      => 'The progress percentage field is required.',
         ]);
 
         try {
@@ -270,7 +284,6 @@ class PipelineController extends Controller
                 'pic_phone_number'          =>  $request->pic_phone_number,
                 'pic_position_id'           =>  $request->pic_position,
                 'pic_email'                 =>  $request->pic_email,
-                'progress_id'               =>  $request->progress_percentage,
                 'quotation_file_name'       =>  $quotation_file_name,
                 'quotation_file_path'       =>  $quotation_url,
                 'contract_file_name'        =>  $contract_file_name,
@@ -278,33 +291,28 @@ class PipelineController extends Controller
                 'created_by'                =>  Auth::user()->ID
             ]);
 
-            DB::table('crm_pipeline_case_status')->where('pipeline_id', $request->pipeline_id)->delete();
-
-            if(count($request->case_status)){
-                foreach($request->case_status as $case_status){
-                    DB::table('crm_pipeline_case_status')->insert([
+            DB::table('crm_pipeline_progress')->where('pipeline_id', $request->pipeline_id)->delete();
+            if(count($request->progress_status)){
+                foreach($request->progress_status as $progress_status){
+                    $progress_id = DB::table('crm_pipeline_progress')->insertGetId([
                         'pipeline_id'       =>  $request->pipeline_id,
-                        'case_status_id'    =>  $case_status['id'],
-                        'date'              =>  Carbon::parse($case_status['date']),
-                        'remark'            =>  $case_status['remark'],
+                        'case_status_id'    =>  $progress_status['case_status'],
+                        'date'              =>  Carbon::parse($progress_status['date']),
+                        'remark'            =>  $progress_status['remark'],
                         'created_by'        =>  Auth::user()->ID
                     ]);
+
+                    foreach($progress_status['signed_up_programs'] as $program){
+                        DB::table('crm_pipeline_programs')->insert([
+                            'progress_id'       =>  $progress_id,
+                            'program_id'        =>  $program['id'],
+                            'student_numbers'   =>  $program['student_numbers'],
+                            'created_by'        =>  Auth::user()->ID
+                        ]);
+                    }
                 }
             }
 
-            DB::table('crm_pipeline_programs')->where('pipeline_id', $request->pipeline_id)->delete();
-
-            if(count($request->signed_up_programs)){
-                foreach($request->signed_up_programs as $program){
-                    DB::table('crm_pipeline_programs')->insert([
-                        'pipeline_id'       =>  $request->pipeline_id,
-                        'program_id'        =>  $program['id'],
-                        'student_numbers'   =>  $program['student_numbers'],
-                        'created_by'        =>  Auth::user()->ID
-                    ]);
-                }
-            }
-                
             DB::commit();
         
             return redirect()->route('pipelines')->with(['type' => 'success', 'message' => 'Data has been saved.']);
@@ -316,11 +324,8 @@ class PipelineController extends Controller
     }
 
     public function destroy($id){
-        DB::table('crm_pipelines')
-            ->join('crm_school_types', 'crm_pipelines.school_type_id', '=', 'crm_school_types.id')
-            ->join('crm_progress_percentage', 'crm_pipelines.progress_id', '=', 'crm_progress_percentage.id')
-            ->where('crm_pipelines.id', $id)
-            ->delete();
+        DB::table('crm_pipelines')->where('id', $id)->delete();
+        DB::table('crm_pipeline_progress')->where('pipeline_id', $id)->delete();
 
         return redirect()->route('pipelines')->with(['type' => 'success', 'message' => 'Data has been deleted.']);
     }

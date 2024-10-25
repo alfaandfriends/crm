@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import BreezeAuthenticatedLayout from '@/Layouts/Authenticated.vue';
 import Card from '@/Components/Card.vue'
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
 </script>
 
 <template>
@@ -39,7 +40,7 @@ import Card from '@/Components/Card.vue'
                 <div class="grid grid-cols-1 2xl:grid-cols-4 gap-4">
                     <div>
                         <Label> Assign To </Label>
-                        <ComboBox :items="user_list.options" label-property="display_name" value-property="value" select-placeholder="" @search="findUsernameEmail" v-model="form.assignee_name" :selectPlaceholder="form.assignee_name" search-placeholder="Search sales person name..." :loading="searching_username_email"> 
+                        <ComboBox :items="user_list.options" label-property="display_name" value-property="value" select-placeholder="" @search="findUsernameEmail" v-model="form.assign_to" :selectPlaceholder="form.assignee_name" search-placeholder="Search sales person name..." :loading="searching_username_email"> 
                             <template #label="{ item }">
                                 <span class="font-medium">{{ item.display_name }}<br><small class="font-normal">{{ item.user_email ? item.user_email : 'Email not available' }}</small></span>
                             </template>
@@ -126,121 +127,58 @@ import Card from '@/Components/Card.vue'
         
         <!-- Status Information -->
         <Card>
-            <template #title>Progress Status</template>
+            <template #title>
+                <div class="flex items-center justify-between">
+                    <span>Progress Status</span>
+                    <Button @click="openAddProgress">Add Progress</Button>
+                </div>
+            </template>
             <template #content>
-                <div class="grid grid-cols-1 2xl:grid-cols-4 gap-4">
-                    <div>
+                <div class="grid grid-cols-1">
+                    <div class="">
+                        <Table>
+                            <TableHeader class="bg-gray-100">
+                                <TableRow>
+                                <TableHead class="px-6">Date</TableHead>
+                                <TableHead>Case Status</TableHead>
+                                <TableHead>Remark</TableHead>
+                                <TableHead>Signed Up Program</TableHead>
+                                <TableHead class="text-center">Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow v-if="form.progress_status.length" v-for="progress_status, progress_status_index in form.progress_status">
+                                    <TableCell class="px-6">{{ format(new Date(progress_status.date), 'dd/MM/yyyy') }}</TableCell>
+                                    <TableCell>{{ progress_status.case_status_name }}</TableCell>
+                                    <TableCell>{{ progress_status.remark }}</TableCell>
+                                    <TableCell class="max-w-xs">
+                                        <div class="flex gap-1 flex-wrap">
+                                            <Badge variant="outline" v-for="program in progress_status.signed_up_programs"><span>{{ program.name }} - <span class="font-normal">{{ program.student_numbers }} students</span></span></Badge>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell class="text-center space-x-1">
+                                        <Button variant="outline" @click="editAddProgress(progress_status_index)">
+                                            Edit
+                                        </Button>
+                                        <Button variant="destructive" @click="deleteProgressStatus(progress_status_index)">
+                                            Delete
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow v-else>
+                                    <TableCell class="text-center" colspan="10">
+                                        <div class="p-3">
+                                            No Record Found
+                                        </div>
+                                    </TableCell>
+                                </TableRow> 
+                            </TableBody>
+                        </Table>
+                    </div>
+                    <!-- <div>
                         <Label> Progress Percentage</Label>
                         <ComboBox :items="$page.props.progress_percentage" label-property="name" value-property="id" v-model="form.progress_percentage" select-placeholder="" search-placeholder="Search status..."></ComboBox>
-                    </div>
-                </div>
-            </template>
-        </Card>
-        
-        <!-- Case Status Information -->
-        <Card>
-            <template #title>Case Status</template>
-            <template #content>
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="mb-2 col-span-4">
-                        <ul class="mt-1 flex flex-col sm:flex-row sm:flex-wrap">
-                            <li class="inline-flex items-center gap-x-2.5 py-3 px-4 text-sm font-medium bg-white border text-gray-800 -mt-px first:rounded-t-lg first:mt-0 last:rounded-b-lg sm:-ms-px sm:mt-0 sm:first:rounded-se-none sm:first:rounded-es-lg sm:last:rounded-es-none sm:last:rounded-se-lg" v-for="case_status, case_status_index in $page.props.case_status">
-                                <div class="relative flex items-start w-full">
-                                    <div class="flex items-center space-x-2">
-                                        <Checkbox :ref="'case_status_'+case_status.id" :id="'case_status_'+case_status.id" type="checkbox" :checked="isCaseStatusChecked(case_status.id)" @click.native="triggerCaseStatus(case_status.id)"></Checkbox>
-                                        <Label class="cursor-pointer" :for="'case_status_'+case_status.id">{{ case_status.name }}</Label>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mb-2 col-span-4">
-                        <div class="flex flex-col">
-                            <div class="-m-1.5 overflow-x-auto">
-                                <div class="p-1.5 min-w-full inline-block align-middle">
-                                    <div class="border rounded-lg overflow-hidden dark:border-neutral-700">
-                                        <table class="w-full divide-y divide-gray-200">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase bg-gray-100">Case Status</th>
-                                                    <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase bg-gray-100">Date</th>
-                                                    <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase bg-gray-100">Remark</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-gray-200">
-                                                <tr v-for="case_status in form.case_status" v-if="form.case_status.length">
-                                                    <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-800">{{ case_status.name }}</td>
-                                                    <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-800">
-                                                        <Datepicker 
-                                                        mode="date"
-                                                            v-model="case_status.date" 
-                                                            :format="'dd/MM/yyyy'"
-                                                        />
-                                                    </td>
-                                                    <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-800">
-                                                        <Input type="text" v-model="case_status.remark" autocomplete="off"></Input>
-                                                    </td>
-                                                </tr>
-                                                <tr v-else>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center" colspan="3">No case status added</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </template>
-        </Card>
-        
-        <!-- Signed Up Program Information -->
-        <Card>
-            <template #title>Signed Up Program</template>
-            <template #content>
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="">
-                        <ul class="mt-1 flex flex-col sm:flex-row sm:flex-wrap">
-                            <li class="inline-flex items-center gap-x-2.5 py-3 px-4 text-sm font-medium bg-white border text-gray-800 -mt-px first:rounded-t-lg first:mt-0 last:rounded-b-lg sm:-ms-px sm:mt-0 sm:first:rounded-se-none sm:first:rounded-es-lg sm:last:rounded-es-none sm:last:rounded-se-lg" v-for="program, program_index in $page.props.programs" @change="triggerProgram($event, program.id)">
-                                <div class="relative flex items-start w-full">
-                                    <div class="flex items-center space-x-2">
-                                        <Checkbox :ref="'program_'+program.id" :id="'program_'+program.id" type="checkbox" :checked="isProgramChecked(program.id)" @click.native="triggerProgram(program.id)"></Checkbox>
-                                        <Label class="cursor-pointer" :for="'program_'+program.id">{{ program.name }}</Label>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="">
-                        <div class="flex flex-col">
-                            <div class="-m-1.5 overflow-x-auto">
-                                <div class="p-1.5 min-w-full inline-block align-middle">
-                                    <div class="border rounded-lg overflow-hidden dark:border-neutral-700">
-                                        <table class="w-full divide-y divide-gray-200">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase bg-gray-100">Program Name</th>
-                                                    <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase bg-gray-100">Student Numbers</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-gray-200">
-                                                <tr v-for="program in form.signed_up_programs" v-if="form.signed_up_programs.length">
-                                                    <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-800">{{ program.name }}</td>
-                                                    <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-800">
-                                                        <Input type="number" v-model="program.student_numbers" autocomplete="off"></Input>
-                                                    </td>
-                                                </tr>
-                                                <tr v-else>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center" colspan="3">No signed up program added</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    </div> -->
                 </div>
             </template>
         </Card>
@@ -324,22 +262,168 @@ import Card from '@/Components/Card.vue'
                     <Button variant="outline" @click="$inertia.get(route('pipelines'))">
                         Cancel
                     </Button>
-                    <Button @click="submit">
+                    <Button @click.native="submit()">
                         Save
                     </Button>
                 </div>
             </template>
         </Card>
+        <Dialog v-model:open="show_add_progress" classProp="max-w-md">
+            <template #title>Add Progress Status</template>
+            <template #content>
+                <div class="grid grid-cols-1 gap-4 py-1">
+                    <div>
+                        <Label> Case Status </Label>
+                        <ComboBox :items="$page.props.case_status" label-property="name" value-property="id" v-model="progress_form.case_status" select-placeholder="" search-placeholder="Search case status..." @select="progress_form.case_status_name = $page.props.case_status.find(item => item.id == progress_form.case_status)?.name"></ComboBox>
+                    </div>
+                    <div>
+                        <Label>Date</Label>
+                        <div class="" id="date"></div>
+                        <Datepicker mode="date" v-model="progress_form.date" format="dd/MM/y" teleport="#date" :customPosition="() => ({left: 50})"/>
+                    </div>
+                    <div>
+                        <Label> Remark </Label>
+                        <Textarea rows="3" autocomplete="off" v-model="progress_form.remark"></Textarea>
+                    </div>
+                    <div>
+                        <Label> Signed Up Programs </Label>
+                        <ul class="mt-1 grid grid-cols-1 sm:grid-cols-2 w-full">
+                            <li class="inline-flex items-center gap-x-2.5 py-3 px-4 text-sm font-medium bg-white border text-gray-800 -mt-px sm:mt-0 flex-grow w-full" 
+                                v-for="program, program_index in $page.props.programs" 
+                            >
+                                <div class="relative flex items-start w-full">
+                                    <div class="flex items-center space-x-2">
+                                        <Checkbox :id="'program_'+program.id" type="checkbox" :checked="isProgramChecked(program.id)" @click.native="triggerProgram(program.id)"></Checkbox>
+                                        <Label class="cursor-pointer" :for="'program_'+program.id">{{ program.name }}</Label>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <Table>
+                            <TableHeader class="bg-gray-100">
+                                <TableRow>
+                                    <TableHead class="px-6">Program</TableHead>
+                                    <TableHead>Student Numbers</TableHead>
+                                    <TableHead class="text-center">Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow v-if="progress_form.signed_up_programs.length" v-for="program, program_index in progress_form.signed_up_programs">
+                                    <TableCell>{{ program.name }}</TableCell>
+                                    <TableCell>
+                                        <Input v-model="program.student_numbers"></Input>
+                                    </TableCell>
+                                    <TableCell class="text-center space-x-1">
+                                        <Button variant="destructive" @click="deleteProgram(program_index)">
+                                            Delete
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow v-else>
+                                    <TableCell class="text-center" colspan="10">
+                                        <div class="p-3">
+                                            No Record Found
+                                        </div>
+                                    </TableCell>
+                                </TableRow> 
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+            </template>
+            <template #footer>
+                <Button variant="outline" @click="show_add_progress = false">Cancel</Button>
+                <Button @click="addProgress">Add</Button>
+            </template>
+        </Dialog>
+        <Dialog v-model:open="show_edit_progress" classProp="max-w-md">
+            <template #title>Edit Progress Status</template>
+            <template #content>
+                <div class="grid grid-cols-1 gap-4 py-1">
+                    <div>
+                        <Label> Case Status </Label>
+                        <ComboBox :items="$page.props.case_status" label-property="name" value-property="id" v-model="progress_form_edit.case_status" select-placeholder="" search-placeholder="Search case status..." @select="progress_form_edit.case_status_name = $page.props.case_status.find(item => item.id == progress_form_edit.case_status)?.name"></ComboBox>
+                    </div>
+                    <div>
+                        <Label>Date</Label>
+                        <div class="" id="date"></div>
+                        <Datepicker mode="date" v-model="progress_form_edit.date" format="dd/MM/y" teleport="#date" :customPosition="() => ({left: 50})"/>
+                    </div>
+                    <div>
+                        <Label> Remark </Label>
+                        <Textarea rows="3" autocomplete="off" v-model="progress_form_edit.remark"></Textarea>
+                    </div>
+                    <div>
+                        <Label> Signed Up Programs </Label>
+                        <ul class="mt-1 grid grid-cols-1 sm:grid-cols-2 w-full">
+                            <li class="inline-flex items-center gap-x-2.5 py-3 px-4 text-sm font-medium bg-white border text-gray-800 -mt-px sm:mt-0 flex-grow w-full" 
+                                v-for="program, program_index in $page.props.programs" 
+                            >
+                                <div class="relative flex items-start w-full">
+                                    <div class="flex items-center space-x-2">
+                                        <Checkbox :id="'program_'+program.id" type="checkbox" :checked="isProgramCheckedEdit(program.id)" @click.native="triggerProgramEdit(program.id)"></Checkbox>
+                                        <Label class="cursor-pointer" :for="'program_'+program.id">{{ program.name }}</Label>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <Table>
+                            <TableHeader class="bg-gray-100">
+                                <TableRow>
+                                    <TableHead class="px-6">Program</TableHead>
+                                    <TableHead>Student Numbers</TableHead>
+                                    <TableHead class="text-center">Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow v-if="progress_form_edit.signed_up_programs.length" v-for="progress_edit, progress_edit_index in progress_form_edit.signed_up_programs">
+                                    <TableCell>{{ progress_edit.name }}</TableCell>
+                                    <TableCell>
+                                        <Input v-model="progress_edit.student_numbers"></Input>
+                                    </TableCell>
+                                    <TableCell class="text-center space-x-1">
+                                        <Button variant="destructive" @click="deleteProgramEdit(progress_edit_index)">
+                                            Delete
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow v-else>
+                                    <TableCell class="text-center" colspan="10">
+                                        <div class="p-3">
+                                            No Record Found
+                                        </div>
+                                    </TableCell>
+                                </TableRow> 
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+            </template>
+            <template #footer>
+                <Button variant="outline" @click="show_edit_progress = false">Cancel</Button>
+                <Button @click="editProgress">Add</Button>
+            </template>
+        </Dialog>
     </BreezeAuthenticatedLayout>
 </template>
 
 <script>
 import { debounce } from 'vue-debounce'
 import Checkbox from '@/Components/ui/checkbox/Checkbox.vue';
+import Dialog from '@/Components/DialogModal.vue'
+import { format } from 'date-fns';
+import { Badge } from '@/Components/ui/badge'
 
 export default {
     data(){
         return {
+            show_add_progress: false,
+            show_edit_progress: false,
+            edit_progress_index: '',
             selected_program: '',
             searching_username_email: false,
             user_list: {
@@ -362,59 +446,101 @@ export default {
                 pic_position: this.$page.props.pipeline_info.pic_position_id ?? '',
                 pic_phone_number: this.$page.props.pipeline_info.pic_phone_number ?? '',
                 pic_email: this.$page.props.pipeline_info.pic_email ?? '',
-                progress_percentage: this.$page.props.pipeline_info.progress_id ?? '',
-                case_status: [],
-                signed_up_programs: [],
+                progress_status: this.$page.props.pipeline_progress ?? '',
                 quotation: this.$page.props.pipeline_info.quotation_file_name ?? '',
                 quotation_path: this.$page.props.pipeline_info.quotation_file_path ?? '',
                 delete_quotation: false,
                 contract: this.$page.props.pipeline_info.contract_file_name ?? '',
                 contract_path: this.$page.props.pipeline_info.contract_file_path ?? '',
                 delete_contract: false,
-            }
+            },
+            progress_form: {
+                case_status: '',
+                case_status_name: '',
+                date: '',
+                remark: '',
+                signed_up_programs: []
+            },
+            progress_form_edit: ''
         }
     },
     methods: {
-        isCaseStatusChecked(case_status_id) {
-            return this.form.case_status.some(status => status.id === case_status_id);
+        openAddProgress(){
+            this.show_add_progress = true
+        },
+        editAddProgress(index){
+            this.progress_form_edit = ''
+            this.progress_form_edit = JSON.parse(JSON.stringify(this.form.progress_status[index]));
+            this.edit_progress_index = index
+            this.show_edit_progress = true
         },
         isProgramChecked(program_id) {
-            return this.form.signed_up_programs.some(program => program.id === program_id);
-        },
-        triggerCaseStatus(case_status_id){
-            const checked = this.form.case_status.some(status => status.id === case_status_id)
-            
-            if(!checked){
-                this.form.case_status.push({
-                    'id': case_status_id,
-                    'name': this.$page.props.case_status.find(case_status => case_status.id === case_status_id).name,
-                    'date': '',
-                    'remark': '',
-                })
-            }
-            else{
-                const index = this.form.case_status.findIndex(case_status => case_status.id === case_status_id)
-                this.form.case_status.splice(index, 1)
-            }
-            this.form.case_status.sort((a, b) => a.id - b.id);
-
+            return this.progress_form.signed_up_programs.some(program => program.id === program_id);
         },
         triggerProgram(program_id){
-            const checked = this.form.signed_up_programs.some(program => program.id === program_id)
+            const checked = this.progress_form.signed_up_programs.some(program => program.id === program_id)
             
             if(!checked){
-                this.form.signed_up_programs.push({
+                this.progress_form.signed_up_programs.push({
                     'id': program_id,
                     'name': this.$page.props.programs.find(program => program.id === program_id).name,
                     'student_numbers': '',
                 })
             }
             else{
-                const index = this.form.signed_up_programs.findIndex(program => program.id === program_id)
-                this.form.signed_up_programs.splice(index, 1)
+                const index = this.progress_form.signed_up_programs.findIndex(program => program.id === program_id)
+                this.progress_form.signed_up_programs.splice(index, 1)
             }
-            this.form.signed_up_programs.sort((a, b) => a.id - b.id);
+            this.progress_form.signed_up_programs.sort((a, b) => a.id - b.id);
 
+        },
+        deleteProgram(index){
+            this.progress_form.signed_up_programs.splice(index, 1)
+        },
+        isProgramCheckedEdit(program_id) {
+            return this.progress_form_edit.signed_up_programs.some(program => program.id === program_id);
+        },
+        triggerProgramEdit(program_id){
+            const checked = this.progress_form_edit.signed_up_programs.some(program => program.id === program_id)
+            
+            if(!checked){
+                this.progress_form_edit.signed_up_programs.push({
+                    'id': program_id,
+                    'name': this.$page.props.programs.find(program => program.id === program_id).name,
+                    'student_numbers': '',
+                })
+            }
+            else{
+                const index = this.progress_form_edit.signed_up_programs.findIndex(program => program.id === program_id)
+                this.progress_form_edit.signed_up_programs.splice(index, 1)
+            }
+            this.progress_form_edit.signed_up_programs.sort((a, b) => a.id - b.id);
+
+        },
+        deleteProgramEdit(index){
+            this.progress_form_edit.signed_up_programs.splice(index, 1)
+        },
+        addProgress(){
+            this.form.progress_status.push(JSON.parse(JSON.stringify(this.progress_form)))
+            this.clearForm()
+            this.show_add_progress = false
+        },
+        editProgress(){
+            this.form.progress_status[this.edit_progress_index] = JSON.parse(JSON.stringify(this.progress_form_edit))
+            this.clearForm()
+            this.show_edit_progress = false
+        },
+        clearForm(){
+            this.progress_form.case_status = ''
+            this.progress_form.date = ''
+            this.progress_form.remark = ''
+            this.progress_form.signed_up_programs = []
+        },
+        deleteProgressStatus(index){
+            this.form.progress_status.splice(index, 1)
+        },
+        editProgressStatus(index){
+            
         },
         handleQuotationFileUpload(event) {
             const file = event.target.files[0];
@@ -489,27 +615,6 @@ export default {
                 }, 100);
             }
         },
-    },
-    mounted(){
-        this.$page.props.pipeline_case_status_info.forEach(element => {
-            this.$refs['case_status_'+element.case_status_id][0].checked = true
-            this.form.case_status.push({
-                'id': element.case_status_id,
-                'name': element.case_status_name,
-                'date': element.date,
-                'remark': element.remark,
-            })
-        });
-
-        
-        this.$page.props.pipeline_programs_info.forEach(element => {
-            this.$refs['program_'+element.program_id][0].checked = true
-            this.form.signed_up_programs.push({
-                'id': element.program_id,
-                'name': element.program_name,
-                'student_numbers': element.student_numbers,
-            })
-        });
     }
 }
 </script>

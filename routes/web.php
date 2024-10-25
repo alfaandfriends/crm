@@ -14,6 +14,8 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('dashboard');
     });
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/get-monthly-report', [DashboardController::class, 'getMonthlyReport'])->name('dashboard.get_monthly_report');
+    Route::get('/dashboard/get-yearly-report', [DashboardController::class, 'getYearlyReport'])->name('dashboard.get_yearly_report');
 
     Route::prefix('pipelines')->group(function () {
         Route::get('/', [PipelineController::class, 'index'])->name('pipelines');

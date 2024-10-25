@@ -1,11 +1,11 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 
 const props = defineProps({
   modelValue: {
-    type: [String, Date, Object],
+    type: [String, Number, Date, Object],
     default: new Date,
   },
   mode: {
@@ -14,7 +14,7 @@ const props = defineProps({
   },
   format: {
     type: String,
-    default: 'YYYY-MM-DD'
+    default: 'yyyy-MM-DD'
   },
   teleport: {
     type: [Boolean, String],
@@ -28,6 +28,21 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  uid: {
+    type: String,
+    default: '',
+    required: false,
+  },
+  customPosition: {
+    type: Function,
+    default: null,
+    required: false,
+  },
+  placeholder: {
+    type: String,
+    default: '',
+    required: false,
+  },
   error: {
     type: [Boolean, String],
     default: false
@@ -37,27 +52,36 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'select']);
 
 const internalValue = ref(props.modelValue);
+const isInitialized = ref(false);
 
 watch(internalValue, (newValue) => {
   emit('update:modelValue', newValue);
   emit('select', newValue);
 });
 
+nextTick(()=>{
+  isInitialized.value = true;
+})
+
 </script>
 
 <template>
-  <VueDatePicker
-    v-model="internalValue" 
-    :auto-apply="mode == 'time' ? false : true" 
-    :clearable="false" 
-    :enable-time-picker="mode == 'time' ? true : false" 
-    :format="format" 
+  <VueDatePicker v-if="isInitialized"
+    v-model="internalValue"
+    :auto-apply="mode == 'time' ? false : true"
+    :clearable="false"
+    :enable-time-picker="mode == 'time' ? true : false"
+    :format="format"
     :time-picker="mode == 'time' ? true : false"
     :month-picker="mode == 'month' ? true : false"
+    :year-picker="mode == 'year' ? true : false"
     :teleport="teleport"
     :teleport-center="teleportCenter"
     :is24="false"
     :disabled="disabled"
+    :uid="uid" 
+    :alt-position="customPosition"
+    :placeholder="placeholder"
   />
   <p v-if="props.error" class="mt-0.5 text-xs text-red-500 font-semibold">
     This field is required.
@@ -72,10 +96,10 @@ watch(internalValue, (newValue) => {
   @apply rounded-lg z-50 !important
 }
 .dp__input_wrap{
-  @apply relative border border-gray-200 hover:border-gray-200 rounded-md h-[34px] shadow-sm !important
+  @apply relative border border-gray-200 hover:border-gray-200 rounded-md h-[34px] shadow-sm placeholder:text-black !important
 }
 .dp__input{
-  @apply text-base text-[14px] h-[34px] border border-transparent font-medium font-sans rounded-md disabled:bg-gray-50 disabled:cursor-not-allowed hover:border-transparent !important
+  @apply text-base text-[14px] h-[34px] border border-transparent font-normal font-sans rounded-md disabled:bg-gray-50 disabled:cursor-not-allowed hover:border-transparent placeholder:text-black !important
 }
 .dp__active_date{
   @apply bg-primary border-primary !important

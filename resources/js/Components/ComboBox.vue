@@ -45,7 +45,7 @@
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent class="flex p-0 min-w-[var(--radix-popover-trigger-width)]">
+      <PopoverContent class="flex p-0 min-w-[var(--radix-popover-trigger-width)]" :inert="!isOpen">
         <Command>
           <CommandInput
             type="text"
