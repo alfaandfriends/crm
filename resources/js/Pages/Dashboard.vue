@@ -18,7 +18,7 @@ import axios from 'axios';
                     </div>
                     <div class="">
                         <Label>Sales Person</Label>
-                        <ComboBox :items="monthly_report.user.list.options" label-property="display_name" value-property="value" @search="findUserMonthly" v-model="monthly_report.params.sales_person" select-placeholder="All Records" search-placeholder="Search sales person..." :loading="monthly_report.user.searching" @select="getMonthlyReport"> 
+                        <ComboBox :canClear="true" :items="monthly_report.user.list.options" label-property="display_name" value-property="value" @search="findUserMonthly" v-model="monthly_report.params.sales_person" select-placeholder="All Records" search-placeholder="Search sales person..." :loading="monthly_report.user.searching" @select="getMonthlyReport"> 
                             <template #label="{ item }">
                                 <span class="font-medium">{{ item.display_name }}<br><small class="font-normal">{{ item.user_email ? item.user_email : 'Email not available' }}</small></span>
                             </template>
@@ -99,7 +99,7 @@ import axios from 'axios';
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-2">
                     <div class="">
                         <Label>Program</Label>
-                        <ComboBox :items="$page.props.programs" label-property="name" value-property="id" v-model="yearly_report.params.program" select-placeholder="All Programs" search-placeholder="Search program..." @select="getYearlyReport"></ComboBox>
+                        <ComboBox :canClear="true" :items="$page.props.programs" label-property="name" value-property="id" v-model="yearly_report.params.program" select-placeholder="All Programs" search-placeholder="Search program..." @select="getYearlyReport"></ComboBox>
                     </div>
                     <div class="">
                         <Label>Year</Label>
@@ -107,7 +107,7 @@ import axios from 'axios';
                     </div>
                     <div class="">
                         <Label>Sales Person</Label>
-                        <ComboBox :items="yearly_report.user.list.options" label-property="display_name" value-property="value" @search="findUserYearly" v-model="yearly_report.params.sales_person" select-placeholder="All Records" search-placeholder="Search sales person..." :loading="yearly_report.user.searching" @select="getYearlyReport"> 
+                        <ComboBox :canClear="true" :items="yearly_report.user.list.options" label-property="display_name" value-property="value" @search="findUserYearly" v-model="yearly_report.params.sales_person" select-placeholder="All Records" search-placeholder="Search sales person..." :loading="yearly_report.user.searching" @select="getYearlyReport"> 
                             <template #label="{ item }">
                                 <span class="font-medium">{{ item.display_name }}<br><small class="font-normal">{{ item.user_email ? item.user_email : 'Email not available' }}</small></span>
                             </template>
