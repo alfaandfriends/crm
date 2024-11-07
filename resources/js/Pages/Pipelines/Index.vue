@@ -30,7 +30,7 @@ import { PlusCircle, PlusCircleIcon } from 'lucide-vue-next';
                         <TableHead>#</TableHead>
                         <TableHead>School Name</TableHead>
                         <TableHead>School Type</TableHead>
-                        <TableHead>Progress</TableHead>
+                        <!-- <TableHead>Progress</TableHead> -->
                         <TableHead>Principal Name</TableHead>
                         <TableHead>Phone Number</TableHead>
                         <TableHead>Address</TableHead>
@@ -42,7 +42,7 @@ import { PlusCircle, PlusCircleIcon } from 'lucide-vue-next';
                             <TableCell>{{ $page.props.pipelines.from + pipeline_index }}</TableCell>
                             <TableCell>{{ pipeline.school_name }}</TableCell>
                             <TableCell>{{ pipeline.school_type }}</TableCell>
-                            <TableCell>{{ pipeline.progress_percentage }}</TableCell>
+                            <!-- <TableCell>{{ pipeline.progress_percentage }}</TableCell> -->
                             <TableCell>{{ pipeline.principal_name }}</TableCell>
                             <TableCell>{{ pipeline.principal_phone_number }}</TableCell>
                             <TableCell>{{ pipeline.school_address }}</TableCell>
