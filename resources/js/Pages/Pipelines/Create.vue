@@ -38,7 +38,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
             <template #title>Basic Information</template>
             <template #content>
                 <div class="grid grid-cols-1 2xl:grid-cols-4 gap-4">
-                    <div>
+                    <div v-if="$page.props.is_admin">
                         <Label> Assign To </Label>
                         <ComboBox :items="user_list.options" label-property="display_name" value-property="value" @search="findUsernameEmail" v-model="form.assign_to" select-placeholder="" search-placeholder="Search sales person name..." :loading="searching_username_email"> 
                             <template #label="{ item }">
@@ -431,7 +431,7 @@ export default {
                 options: []
             },
             form: {
-                assign_to: '',
+                assign_to: this.$page.props.is_admin ? '' : this.$page.props.auth.user.id,
                 date_start: '',
                 lead_source: '',
                 school_name: '',
