@@ -4,6 +4,9 @@ import BreezeAuthenticatedLayout from '@/Layouts/Authenticated.vue';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
 import Card from '@/Components/Card.vue'
 import axios from 'axios';
+import { Button } from '@/Components/ui/button'
+import { Share2 } from 'lucide-vue-next'
+import { useToast } from '@/Components/ui/toast/use-toast'
 </script>
 
 <template>
@@ -163,6 +166,7 @@ import axios from 'axios';
 import { format } from 'date-fns'
 import { debounce } from 'vue-debounce'
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
+import { useToast } from '@/Components/ui/toast/use-toast'
 
 export default {
     data(){
@@ -372,6 +376,31 @@ export default {
                     year: year
                 };
                 this.months.push(month);
+            }
+        },
+        async generateShareUrl() {
+            try {
+                const response = await axios.post(route('dashboard.generate_share_url'), {
+                    date: this.monthly_report.params.date,
+                    sales_person: this.monthly_report.params.sales_person
+                });
+
+                const url = response.data.url;
+                
+                // Copy to clipboard
+                await navigator.clipboard.writeText(url);
+                
+                // Show success toast
+                useToast().toast({
+                    title: "Success",
+                    description: "Shareable link copied to clipboard!",
+                });
+            } catch (error) {
+                useToast().toast({
+                    title: "Error",
+                    description: "Failed to generate shareable link",
+                    variant: "destructive"
+                });
             }
         }
     },

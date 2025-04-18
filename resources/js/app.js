@@ -15,6 +15,7 @@ import { Button } from '@/Components/ui/button'
 import { Checkbox } from '@/Components/ui/checkbox'
 import { Switch } from '@/Components/ui/switch'
 import { RadioGroup, RadioGroupItem  } from '@/Components/ui/radio-group'
+import { ToastProvider } from '@/Components/ui/toast'
 import ComboBox from '@/Components/ComboBox.vue'
 import Datepicker from '@/Components/Datepicker.vue'
 
@@ -25,7 +26,9 @@ createInertiaApp({
     resolve: name => name.startsWith('Components/') ? require(`./${name}.vue`) : require(`./Pages/${name}.vue`),
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
-        return createApp({ render: () => h(App, props) })
+        return createApp({ 
+            render: () => h(ToastProvider, null, () => h(App, props))
+        })
             .use(plugin)
             .use(ZiggyVue)
             .directive('debounce', vueDebounce({ lock: true }))

@@ -1,5 +1,5 @@
 <template>
-    <Card class="w-full">
+    <Card class="w-full mb-3">
         <CardHeader v-if="$slots.title">
             <CardTitle>
                 <h3 class="font-semibold leading-none tracking-tight">

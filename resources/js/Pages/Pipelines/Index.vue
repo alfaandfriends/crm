@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import BreezeAuthenticatedLayout from '@/Layouts/Authenticated.vue';
 import Card from '@/Components/Card.vue'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
+import { Badge } from '@/Components/ui/badge'
 import Pagination from '@/Components/Pagination.vue'
 import { debounce } from 'vue-debounce'
 import { MagnifyingGlassIcon } from '@radix-icons/vue';
@@ -11,7 +12,7 @@ import { PlusCircle, PlusCircleIcon } from 'lucide-vue-next';
 
 <template>
 	<BreezeAuthenticatedLayout>
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between mb-3">
 			<div class="relative">
 				<MagnifyingGlassIcon class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 				<Input type="text" placeholder="Search" class="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]" v-debounce:800ms="search" v-model="params.search"/>
@@ -27,25 +28,39 @@ import { PlusCircle, PlusCircleIcon } from 'lucide-vue-next';
                 <Table>
                     <TableHeader class="bg-gray-100">
                         <TableRow>
-                        <TableHead>#</TableHead>
-                        <TableHead>School Name</TableHead>
-                        <TableHead>School Type</TableHead>
-                        <!-- <TableHead>Progress</TableHead> -->
+                        <TableHead width="1%">#</TableHead>
+                        <TableHead width="30%">School Name</TableHead>
+                        <!-- <TableHead>School Type</TableHead> -->
                         <TableHead>Principal Name</TableHead>
                         <TableHead>Phone Number</TableHead>
-                        <TableHead>Address</TableHead>
+                        <!-- <TableHead>Address</TableHead> -->
+                        <TableHead class="text-center">Contract Status</TableHead>
                         <TableHead class="text-center">Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         <TableRow v-if="$page.props.pipelines.data.length" v-for="pipeline, pipeline_index in $page.props.pipelines.data">
                             <TableCell>{{ $page.props.pipelines.from + pipeline_index }}</TableCell>
-                            <TableCell>{{ pipeline.school_name }}</TableCell>
-                            <TableCell>{{ pipeline.school_type }}</TableCell>
-                            <!-- <TableCell>{{ pipeline.progress_percentage }}</TableCell> -->
+                            <TableCell>
+                                <div class="mb-1">
+                                    <span>{{ pipeline.school_name }}</span>
+                                </div>
+                                <div class="">
+                                    <Badge variant="">
+                                        {{ pipeline.school_type }}
+                                    </Badge>
+                                </div>
+                            </TableCell>
+                            <!-- <TableCell></TableCell> -->
                             <TableCell>{{ pipeline.principal_name }}</TableCell>
                             <TableCell>{{ pipeline.principal_phone_number }}</TableCell>
-                            <TableCell>{{ pipeline.school_address }}</TableCell>
+                            <!-- <TableCell class="max-w-[200px] truncate">{{ pipeline.school_address }}</TableCell> -->
+                            <TableCell class="text-center">
+                                <Badge :variant="pipeline.contract_status === 'Pending' ? 'secondary' : 'default'" 
+                                       :class="pipeline.contract_status === 'Pending' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'">
+                                    {{ pipeline.contract_status }}
+                                </Badge>
+                            </TableCell>
                             <TableCell class="text-center space-x-1">
 								<Button variant="outline" @click="edit(pipeline.id)">
 									Edit

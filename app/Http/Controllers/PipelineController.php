@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ContractStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Centre;
-use Auth;
 use Exception;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -24,7 +25,7 @@ class PipelineController extends Controller
                                 $query->where('crm_pipelines.school_name', 'LIKE', "%".$search."%");
                             })
                             ->when(!Auth::user()->hasRole('admin'), function($query, $search) {
-                                $query->where('crm_pipelines.assignee_user_id', Auth::user()->ID);
+                                $query->where('crm_pipelines.assignee_user_id', Auth::user()->id());
                             })
                             ->select(
                                 'crm_pipelines.id',
@@ -32,7 +33,8 @@ class PipelineController extends Controller
                                 'crm_school_types.name as school_type', 
                                 'crm_pipelines.principal_name', 
                                 'crm_pipelines.principal_phone_number', 
-                                'crm_pipelines.school_address',)
+                                'crm_pipelines.school_address',
+                                'crm_pipelines.contract_status',)
                             ->paginate(10);
         
         return Inertia::render('Pipelines/Index',[
@@ -202,6 +204,8 @@ class PipelineController extends Controller
         $pic_positions  =   DB::table('crm_pic_positions')->get();
         $case_status    =   DB::table('crm_case_status')->get();
         $programs       =   DB::table('crm_programs')->get();
+        $contract_status = ContractStatus::cases();
+        // dd($contract_status);
 
         return Inertia::render('Pipelines/Edit',[
             'pipeline_info'     => $pipeline_info,
@@ -210,7 +214,8 @@ class PipelineController extends Controller
             'school_types'      => $school_types,
             'pic_positions'     => $pic_positions,
             'case_status'       => $case_status,
-            'programs'          => $programs
+            'programs'          => $programs,
+            'contract_status'   => $contract_status
         ]);
     }
 
@@ -288,6 +293,7 @@ class PipelineController extends Controller
                 'quotation_file_path'       =>  $quotation_url,
                 'contract_file_name'        =>  $contract_file_name,
                 'contract_file_path'        =>  $contract_url,
+                'contract_status'           =>  $request->contract_status,
                 'created_by'                =>  Auth::user()->ID
             ]);
 
@@ -315,11 +321,11 @@ class PipelineController extends Controller
 
             DB::commit();
         
-            return redirect()->route('pipelines')->with(['type' => 'success', 'message' => 'Data has been saved.']);
+            return redirect()->back()->with('success', 'Pipeline updated successfully');
         } catch (Exception $e) {
             Log::error('Insert pipeline failed: ' . $e->getMessage());
             DB::rollBack();
-            return redirect()->route('pipelines')->with(['type' => 'error', 'message' => 'An error has occured']);
+            return redirect()->back()->with('error', 'Failed to update pipeline');
         }
     }
 

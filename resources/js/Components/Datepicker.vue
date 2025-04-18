@@ -54,34 +54,44 @@ const emit = defineEmits(['update:modelValue', 'select']);
 const internalValue = ref(props.modelValue);
 const isInitialized = ref(false);
 
+watch(() => props.modelValue, (newValue) => {
+  internalValue.value = newValue;
+});
+
 watch(internalValue, (newValue) => {
   emit('update:modelValue', newValue);
   emit('select', newValue);
 });
 
-nextTick(()=>{
-  isInitialized.value = true;
-})
+isInitialized.value = true;
+
+const handleSelect = (date) => {
+  internalValue.value = date;
+  emit('select', date);
+};
 
 </script>
 
 <template>
   <VueDatePicker v-if="isInitialized"
     v-model="internalValue"
-    :auto-apply="mode == 'time' ? false : true"
+    :auto-apply="true"
     :clearable="false"
     :enable-time-picker="mode == 'time' ? true : false"
     :format="format"
     :time-picker="mode == 'time' ? true : false"
     :month-picker="mode == 'month' ? true : false"
     :year-picker="mode == 'year' ? true : false"
-    :teleport="teleport"
-    :teleport-center="teleportCenter"
+    :teleport="false"
+    :teleport-center="false"
     :is24="false"
     :disabled="disabled"
     :uid="uid" 
     :alt-position="customPosition"
     :placeholder="placeholder"
+    @update:model-value="handleSelect"
+    :prevent-min-max-navigation="true"
+    :position="'bottom'"
   />
   <p v-if="props.error" class="mt-0.5 text-xs text-red-500 font-semibold">
     This field is required.
@@ -93,7 +103,7 @@ nextTick(()=>{
   @apply rounded-lg !important
 }
 .dp__overlay{
-  @apply rounded-lg z-50 !important
+  @apply rounded-lg z-[9999] !important
 }
 .dp__input_wrap{
   @apply relative border border-gray-200 hover:border-gray-200 rounded-md h-[34px] shadow-sm placeholder:text-black !important
@@ -133,7 +143,7 @@ nextTick(()=>{
   @apply hidden !important
 }
 .dp__action_row{
-  @apply justify-end !important
+  @apply hidden !important
 }
 .dp__action_buttons{
   @apply space-x-1 !important

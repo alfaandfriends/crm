@@ -9,6 +9,7 @@ use App\Models\Centre;
 use Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 
 class DashboardController extends Controller

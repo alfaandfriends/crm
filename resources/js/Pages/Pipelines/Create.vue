@@ -187,10 +187,10 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
         <Card>
             <template #title>Attachments</template>
             <template #content>
-                <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 2xl:grid-cols-2 gap-4">
                     <div class="mb-4" v-if="!form.quotation">
                         <Label class="block text-sm font-semibold text-gray-700"> Quotation </Label>
-                        <form class="mt-1 max-w-sm">
+                        <form class="mt-1">
                             <Label for="file-input" class="sr-only">Choose file</Label>
                             <input type="file" name="file-input" id="file-input" class="block w-full border border-gray-200 shadow-sm rounded-lg text-sm focus:z-10 focus:border-gray-300    focus:ring-0 disabled:opacity-50 disabled:pointer-events-none
                                 file:bg-gray-50 file:border-0
@@ -221,8 +221,8 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
                         </div>
                     </div>
                     <div class="mb-4" v-if="!form.contract">
-                        <Label class="block text-sm font-semibold text-gray-700"> Contract </Label>
-                        <form class="mt-1 max-w-sm">
+                        <Label class="block text-sm font-semibold text-gray-700"> Contract (If any)</Label>
+                        <form class="mt-1">
                             <Label for="file-input" class="sr-only">Choose file</Label>
                             <input type="file" name="file-input" id="file-input" class="block w-full border border-gray-200 shadow-sm rounded-lg text-sm focus:z-10 focus:border-gray-300    focus:ring-0 disabled:opacity-50 disabled:pointer-events-none
                                 file:bg-gray-50 file:border-0
@@ -232,7 +232,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
                             </form>
                     </div>
                     <div v-else>
-                        <Label class="mb-1 block text-sm font-semibold text-gray-700"> Contract </Label>
+                        <Label class="mb-1 block text-sm font-semibold text-gray-700"> Contract (If any)</Label>
                         <div class="mb-2 flex justify-between items-center shadow-border shadow rounded-lg shadow-gray-300 px-6 py-3">
                             <div class="flex items-center">
                                 <div>
