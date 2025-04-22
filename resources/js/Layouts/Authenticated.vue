@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Input } from '@/Components/ui/input'
 import { Sheet, SheetContent, SheetTrigger } from '@/Components/ui/sheet'
 import { ScrollArea } from '@/Components/ui/scroll-area'
-import { onMounted, watch } from 'vue';
+import { onMounted, watch, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { useToast } from '@/Components/ui/toast/use-toast'
 import { Toaster } from '@/Components/ui/toast'
@@ -17,23 +17,25 @@ import { Toaster } from '@/Components/ui/toast'
 const { toast } = useToast();
 const page = usePage();
 
-// Watch for flash messages
-watch(() => page.props.flash?.success, (newValue) => {
-    if (newValue) {
+const lastSuccess = ref(null);
+const lastError = ref(null);
+
+import { onUpdated } from 'vue';
+
+onUpdated(() => {
+    const flash = page.props.flash;
+    if (flash?.success) {
         toast({
             title: "Success",
-            description: newValue,
+            description: flash.success,
             variant: "success",
             class: "bg-green-50 border-green-200 text-green-800"
         });
     }
-});
-
-watch(() => page.props.flash?.error, (newValue) => {
-    if (newValue) {
+    if (flash?.error) {
         toast({
             title: "Error",
-            description: newValue,
+            description: flash.error,
             variant: "destructive",
             class: "bg-red-50 border-red-200 text-red-800"
         });
@@ -47,7 +49,8 @@ onMounted(() => {
         toast({
             title: "Success",
             description: flash.success,
-            duration: 3000,
+            variant: "success",
+            class: "bg-green-50 border-green-200 text-green-800"
         });
     }
     if (flash?.error) {
@@ -55,14 +58,7 @@ onMounted(() => {
             title: "Error",
             description: flash.error,
             variant: "destructive",
-            duration: 3000,
-        });
-    }
-    if (flash?.message) {
-        toast({
-            title: flash.type || "Message",
-            description: flash.message,
-            duration: 3000,
+            class: "bg-red-50 border-red-200 text-red-800"
         });
     }
 });

@@ -73,7 +73,7 @@ class ContractController extends Controller
                     ]);
 
                 DB::commit();
-                return back()->with('success', 'Contract has been updated successfully.');
+                return back()->with('success', 'Contract has been updated.');
             } else {
                 // Generate a unique token for the new contract
                 $token = Str::uuid();
@@ -99,7 +99,7 @@ class ContractController extends Controller
                 ]);
 
                 DB::commit();
-                return back()->with('success', 'Contract has been created successfully.');
+                return back()->with('success', 'Contract has been created.');
             }
         } catch (Exception $e) {
             DB::rollBack();
@@ -163,7 +163,7 @@ class ContractController extends Controller
 
             DB::commit();
             
-            return back()->with('success', 'Contract has been updated successfully.');
+            return back()->with('success', 'Contract has been updated.');
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Contract update failed', [
@@ -175,12 +175,6 @@ class ContractController extends Controller
             ]);
             return back()->with('error', 'An error occurred while updating the contract. Please try again.');
         }
-    }
-
-    public function destroy($id)
-    {
-        // TODO: Implement contract deletion logic
-        return redirect()->route('contracts.index')->with('success', 'Contract deleted successfully.');
     }
 
     public function view($id)

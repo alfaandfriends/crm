@@ -50,13 +50,15 @@ class PipelineController extends Controller
         $pic_positions          =   DB::table('crm_pic_positions')->get();
         $case_status            =   DB::table('crm_case_status')->get();
         $programs               =   DB::table('crm_programs')->get();
+        $contract_status        =   ContractStatus::cases();
         
         return Inertia::render('Pipelines/Create',[
             'lead_sources'          => $lead_sources,
             'school_types'          => $school_types,
             'pic_positions'         => $pic_positions,
             'case_status'           => $case_status,
-            'programs'              => $programs
+            'programs'              => $programs,
+            'contract_status'       => $contract_status
         ]);
     }
     
@@ -140,11 +142,11 @@ class PipelineController extends Controller
                 
             DB::commit();
         
-            return redirect()->route('pipelines')->with(['type' => 'success', 'message' => 'Data has been added']);
+            return redirect()->route('pipelines.edit', $pipeline_id)->with('success', 'Pipeline has been added.');
         } catch (Exception $e) {
             Log::error('Insert pipeline failed: ' . $e->getMessage());
             DB::rollBack();
-            return redirect()->route('pipelines')->with(['type' => 'error', 'message' => 'An error has occured']);
+            return redirect()->route('pipelines')->with('error', 'An error has occurred.');
         }
         
     }
@@ -321,11 +323,11 @@ class PipelineController extends Controller
 
             DB::commit();
         
-            return redirect()->back()->with('success', 'Pipeline updated successfully');
+            return redirect()->back()->with('success', 'Pipeline has been updated.');
         } catch (Exception $e) {
             Log::error('Insert pipeline failed: ' . $e->getMessage());
             DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to update pipeline');
+            return redirect()->back()->with('error', 'Failed to update pipeline.');
         }
     }
 
@@ -333,6 +335,6 @@ class PipelineController extends Controller
         DB::table('crm_pipelines')->where('id', $id)->delete();
         DB::table('crm_pipeline_progress')->where('pipeline_id', $id)->delete();
 
-        return redirect()->route('pipelines')->with(['type' => 'success', 'message' => 'Data has been deleted.']);
+        return redirect()->route('pipelines')->with('success', 'Pipeline has been deleted.');
     }
 }

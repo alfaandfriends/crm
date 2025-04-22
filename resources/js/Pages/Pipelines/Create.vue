@@ -7,7 +7,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 
 <template>
     <BreezeAuthenticatedLayout>
-        <h1 class="text-xl font-medium px-1">New Pipeline</h1>
+        <h1 class="text-xl font-medium px-1 mb-4">New Pipeline</h1>
 
         <div class="bg-red-50 border border-red-200 text-sm text-red-800 rounded-lg p-4 mb-4" role="alert" v-if="$page.props.errors && Object.keys($page.props.errors).length > 0">
             <div class="flex">
@@ -255,6 +255,26 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
                 </div>
             </template>
         </Card>
+        
+        <!-- Contract Status Section -->
+        <Card>
+            <template #title>Status</template>
+            <template #content>
+                <div class="grid grid-cols-1 2xl:grid-cols-3 gap-4">
+                    <div>
+                        <Label>Contract Status</Label>
+                        <ComboBox 
+                            :items="$page.props.contract_status" 
+                            label-property="name" 
+                            value-property="id" 
+                            v-model="form.contract_status" 
+                            select-placeholder="" 
+                            search-placeholder="Search contract status..."
+                        ></ComboBox>
+                    </div>
+                </div>
+            </template>
+        </Card>
 
         <Card>
             <template #content>
@@ -446,7 +466,8 @@ export default {
                 pic_email: '',
                 progress_status: [],
                 quotation: '',
-                contract: ''
+                contract: '',
+                contract_status: 'Pending'
             },
             progress_form: {
                 case_status: '',
