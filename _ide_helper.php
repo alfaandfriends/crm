@@ -18869,6 +18869,143 @@ namespace MikeMcLin\WpPassword\Facades {
             }
     }
 
+namespace Xammie\Mailbook\Facades {
+            /**
+     * 
+     *
+     * @mixin \Xammie\Mailbook\Mailbook
+     */        class Mailbook {
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function add($class)
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->add($class);
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function label($label)
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->label($label);
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function category($category)
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->category($category);
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function to($notifiable)
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->to($notifiable);
+        }
+                    /**
+         * 
+         *
+         * @return \Xammie\Mailbook\Collection<int, MailableItem> 
+         * @static 
+         */        public static function mailables()
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->mailables();
+        }
+                    /**
+         * 
+         *
+         * @return \Xammie\Mailbook\Collection<int, MailableItem|MailableGroup> 
+         * @static 
+         */        public static function groupedMailables()
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->groupedMailables();
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function setLocale($locale)
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->setLocale($locale);
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function getLocale()
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->getLocale();
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function getMessage()
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->getMessage();
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function setMessage($message)
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->setMessage($message);
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function clearMessage()
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->clearMessage();
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function setRegistrar($registrar)
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->setRegistrar($registrar);
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function clearRegistrar()
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->clearRegistrar();
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */        public static function retrieve($class, $variant, $locale, $fallback = false)
+        {
+                        /** @var \Xammie\Mailbook\Mailbook $instance */
+                        return $instance->retrieve($class, $variant, $locale, $fallback);
+        }
+            }
+    }
+
 namespace Illuminate\Http {
             /**
      * 
@@ -22704,6 +22841,7 @@ namespace  {
             class PDF extends \Barryvdh\DomPDF\Facade\Pdf {}
             class Pdf extends \Barryvdh\DomPDF\Facade\Pdf {}
             class WpPassword extends \MikeMcLin\WpPassword\Facades\WpPassword {}
+            class Mailbook extends \Xammie\Mailbook\Facades\Mailbook {}
     }
 
 

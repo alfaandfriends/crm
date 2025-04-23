@@ -3,6 +3,7 @@ import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import BreezeAuthenticatedLayout from '@/Layouts/Authenticated.vue';
 import SignaturePad from 'signature_pad';
+import axios from 'axios';
 
 const props = defineProps({
     contract: Object,
@@ -88,17 +89,21 @@ const handleSubmit = () => {
 
     form.customer_signature = customerSignaturePad.value.toDataURL();
     form.witness_signature = witnessSignaturePad.value.toDataURL();
-    form.post(route('contract.process_sign', { token: props.token }), {
-        preserveScroll: true,
-        onSuccess: () => {
-            customerSignaturePad.value.clear();
-            witnessSignaturePad.value.clear();
-            form.reset();
+    axios.post(route('contract.process_sign', { token: props.token }), {
+        customer_signature: form.customer_signature,
+        witness_signature: form.witness_signature,
+        terms_accepted: form.terms_accepted
+    })
+    .then(response => {
+        if(response.data.success){
+            window.location = route('contract.view', { id: props.token });
         }
+    })
+    .catch(error => {
+        console.error(error);
+        alert('There was an error processing the signature.');
     });
 };
-
-// Debounce function to limit resize calls
 const debounce = (func, wait) => {
     let timeout;
     return function executedFunction(...args) {

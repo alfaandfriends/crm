@@ -3,12 +3,11 @@ import { Head, Link, usePage, useForm } from '@inertiajs/vue3';
 import { ref, defineProps, onMounted } from 'vue';
 import { debounce } from 'vue-debounce';
 import { format } from 'date-fns';
-import { CopyIcon } from 'lucide-vue-next';
+import { CopyIcon, MailIcon } from 'lucide-vue-next';
 import BreezeAuthenticatedLayout from '@/Layouts/Authenticated.vue';
 import Card from '@/Components/Card.vue';
 import Checkbox from '@/Components/ui/checkbox/Checkbox.vue';
 import Dialog from '@/Components/DialogModal.vue';
-import { Badge } from '@/Components/ui/badge';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -18,6 +17,7 @@ import ComboBox from '@/Components/ComboBox.vue';
 import Datepicker from '@/Components/Datepicker.vue';
 import { useToast } from '@/Components/ui/toast/use-toast'
 import { Toaster } from '@/Components/ui/toast'
+import Badge from '@/Components/ui/badge/Badge.vue';
 
 const props = defineProps({
     pipeline_info: {
@@ -63,6 +63,7 @@ const error_fields_edit = ref({
 
 const contract_error_fields = ref({
     client_name: false,
+    client_email: false,
     ssm_number: false,
     contract_date: false,
     address: false,
@@ -109,6 +110,7 @@ const form = useForm({
 const contractForm = useForm({
     pipeline_id: props.pipeline_info.id ?? '',
     client_name: '',
+    client_email: '',
     ssm_number: '',
     ssm_type: 'SSM',
     contract_date: '',
@@ -166,6 +168,7 @@ const fetchContractData = async () => {
         const response = await axios.get(route('contract.get_by_pipeline', { pipeline_id: props.pipeline_info.id }));
         if (response.data) {
             contractForm.client_name = response.data.name ?? '';
+            contractForm.client_email = response.data.email ?? '';
             contractForm.ssm_number = response.data.ssm_ic ?? '';
             contractForm.ssm_type = response.data.id_type ?? 'SSM';
             contractForm.contract_date = response.data.date ?? new Date().toISOString().split('T')[0];
@@ -536,6 +539,7 @@ const handleSave = () => {
     // Reset error states
     contract_error_fields.value = {
         client_name: false,
+        client_email: false,
         ssm_number: false,
         contract_date: false,
         address: false,
@@ -556,6 +560,13 @@ const handleSave = () => {
         contract_error_fields.value.client_name = true;
         hasErrors = true;
         errorMessage = 'Please enter client name';
+    }
+
+    // Validate client email
+    if (!contractForm.client_email) {
+        contract_error_fields.value.client_email = true;
+        hasErrors = true;
+        errorMessage = 'Please enter client email';
     }
 
     // Validate SSM number
@@ -656,6 +667,10 @@ const handleSave = () => {
             }
         });
     }
+};
+
+const sendContract = () => {
+    contractForm.post(route('contract.send_contract', { id: contractForm.pipeline_id }));
 };
 </script>
 
@@ -1248,6 +1263,8 @@ const handleSave = () => {
                                         :class="contract_error_fields.contract_date ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''"
                                     />
                                 </div>
+                            </div>
+                            <div class="grid grid-cols-1 2xl:grid-cols-2 gap-4">
                                 <div class="w-full">
                                     <Label class="block text-sm font-semibold text-gray-700 mb-1">Client Name</Label>
                                     <Input 
@@ -1255,6 +1272,15 @@ const handleSave = () => {
                                         v-model="contractForm.client_name" 
                                         placeholder="Enter client name"
                                         :class="contract_error_fields.client_name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''"
+                                    />
+                                </div>
+                                <div class="w-full">
+                                    <Label class="block text-sm font-semibold text-gray-700 mb-1">Client Email</Label>
+                                    <Input 
+                                        type="email" 
+                                        v-model="contractForm.client_email" 
+                                        placeholder="Enter client email"
+                                        :class="contract_error_fields.client_email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''"
                                     />
                                 </div>
                                 <div class="w-full">
@@ -1450,14 +1476,18 @@ const handleSave = () => {
                     </div>
 
                     <!-- Actions Section -->
-                    <div>
+                    <div class="border-y border-dashed border-gray-400 py-6">
                         <h3 class="text-sm font-semibold text-gray-700 mb-4">Actions</h3>
                         <div class="grid grid-cols-1 2xl:grid-cols-2 gap-4">
                             <div class="flex space-x-2">
                                 <Button variant="" @click="viewContract" v-if="contractForm.link_token">View Contract</Button>
                                 <Button variant="outline" @click="copyContractLink" v-if="contractForm.link_token" class="gap-2">
                                     <CopyIcon class="size-4" />
-                                    Copy Sign Link
+                                    Copy Contract Link
+                                </Button>
+                                <Button variant="destructive" @click="sendContract" v-if="contractForm.link_token" class="gap-2">
+                                    <MailIcon class="size-4" />
+                                    Send Online Contract
                                 </Button>
                             </div>
                         </div>

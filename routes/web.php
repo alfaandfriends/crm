@@ -29,6 +29,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy/{id}', [ContractController::class, 'destroy'])->name('contract.destroy');
         Route::post('/generate-contract-link/{id}', [ContractController::class, 'generateContractLink'])->name('contract.generate_contract_link');
         Route::get('/get-by-pipeline/{pipeline_id}', [ContractController::class, 'getByPipeline'])->name('contract.get_by_pipeline');
+        Route::post('/send-contract/{pipeline_id}', [ContractController::class, 'sendContract'])->name('contract.send_contract');
     });
 
     Route::prefix('pipelines')->group(function () {
