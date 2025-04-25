@@ -25,7 +25,7 @@ class PipelineController extends Controller
                                 $query->where('crm_pipelines.school_name', 'LIKE', "%".$search."%");
                             })
                             ->when(!Auth::user()->hasRole('admin'), function($query, $search) {
-                                $query->where('crm_pipelines.assignee_user_id', Auth::user()->id());
+                                $query->where('crm_pipelines.assignee_user_id', Auth::user()->ID);
                             })
                             ->select(
                                 'crm_pipelines.id',
