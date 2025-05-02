@@ -18869,6 +18869,35 @@ namespace MikeMcLin\WpPassword\Facades {
             }
     }
 
+namespace Prism\Prism\Facades {
+            /**
+     * 
+     *
+     * @method static Collection<int, array{name: string, prism: Closure():PendingRequest|callable():PendingRequest}> prisms()
+     */        class PrismServer {
+                    /**
+         * 
+         *
+         * @param \Closure():PendingRequest|\Prism\Prism\callable():PendingRequest $prism
+         * @static 
+         */        public static function register($name, $prism)
+        {
+                        /** @var \Prism\Prism\PrismServer $instance */
+                        return $instance->register($name, $prism);
+        }
+                    /**
+         * 
+         *
+         * @return \Prism\Prism\Collection<int, array{name: string, prism: Closure():PendingRequest|callable():PendingRequest}>
+         * @static 
+         */        public static function prisms()
+        {
+                        /** @var \Prism\Prism\PrismServer $instance */
+                        return $instance->prisms();
+        }
+            }
+    }
+
 namespace Xammie\Mailbook\Facades {
             /**
      * 
@@ -22841,6 +22870,7 @@ namespace  {
             class PDF extends \Barryvdh\DomPDF\Facade\Pdf {}
             class Pdf extends \Barryvdh\DomPDF\Facade\Pdf {}
             class WpPassword extends \MikeMcLin\WpPassword\Facades\WpPassword {}
+            class PrismServer extends \Prism\Prism\Facades\PrismServer {}
             class Mailbook extends \Xammie\Mailbook\Facades\Mailbook {}
     }
 

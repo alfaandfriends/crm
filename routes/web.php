@@ -18,6 +18,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/get-monthly-report', [DashboardController::class, 'getMonthlyReport'])->name('dashboard.get_monthly_report');
     Route::get('/dashboard/get-yearly-report', [DashboardController::class, 'getYearlyReport'])->name('dashboard.get_yearly_report');
     Route::post('/dashboard/generate-share-url', [DashboardController::class, 'generateShareUrl'])->name('dashboard.generate_share_url');
+    Route::post('/dashboard/ai-prompt', [DashboardController::class, 'handleAIPrompt'])->name('dashboard.ai_prompt');
 
     // Contract Routes
     Route::prefix('contract')->group(function () {

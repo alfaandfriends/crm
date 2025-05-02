@@ -5,12 +5,105 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import Card from '@/Components/Card.vue'
 import axios from 'axios';
 import { Button } from '@/Components/ui/button'
-import { Share2 } from 'lucide-vue-next'
+import { Sparkles } from 'lucide-vue-next'
 import { useToast } from '@/Components/ui/toast/use-toast'
+import { Textarea } from '@/Components/ui/textarea'
+import { ref, computed } from 'vue'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
+
+const toast = useToast()
+const aiPrompt = ref('')
+const aiResponse = ref('')
+const isGenerating = ref(false)
+const conversationHistory = ref([])
+
+const handlePromptSubmit = async () => {
+    if (!aiPrompt.value.trim()) {
+        toast.error('Please enter a prompt')
+        return
+    }
+
+    try {
+        isGenerating.value = true
+        aiResponse.value = '' // Clear previous response
+
+        const response = await axios.post('/dashboard/ai-prompt', {
+            prompt: aiPrompt.value,
+            conversation_history: conversationHistory.value
+        })
+
+        if (response.data.response) {
+            aiResponse.value = response.data.response
+            // Add the current prompt and response to conversation history
+            conversationHistory.value.push({
+                role: 'user',
+                content: aiPrompt.value
+            })
+            conversationHistory.value.push({
+                role: 'assistant',
+                content: response.data.response
+            })
+            aiPrompt.value = '' // Clear the prompt after successful submission
+        } else {
+            toast.error('No response received from the AI')
+        }
+    } catch (error) {
+        console.error('Error:', error)
+        toast.error('Failed to generate response. Please try again.')
+    } finally {
+        isGenerating.value = false
+    }
+}
+
+const renderMarkdown = (text) => {
+    return DOMPurify.sanitize(marked(text))
+}
 </script>
 
 <template>
     <BreezeAuthenticatedLayout>
+        <!-- <Card class="mb-6">
+            <template #title>
+                <div class="flex items-center gap-2">
+                    <Sparkles class="w-5 h-5 text-yellow-500" />
+                    <span>AI Assistant</span>
+                </div>
+            </template>
+            <template #content>
+                <div class="space-y-4">
+                    <div class="flex flex-col gap-2">
+                        <Textarea 
+                            v-model="aiPrompt" 
+                            placeholder="Ask me anything about your data, trends, or insights..."
+                            class="min-h-[100px] resize-none"
+                            @keydown.enter.prevent="handlePromptSubmit"
+                        />
+                        <div class="flex justify-end">
+                            <Button 
+                                @click="handlePromptSubmit"
+                                :disabled="!aiPrompt.trim() || isGenerating"
+                                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                            >
+                                <Sparkles class="w-4 h-4 mr-2" />
+                                {{ isGenerating ? 'Processing...' : 'Generate Insights' }}
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    <div v-if="aiResponse" class="p-4 rounded-lg border border-slate-200">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0">
+                                <Sparkles class="w-5 h-5 text-yellow-500 mt-1" />
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm text-slate-800 prose prose-sm max-w-none" v-html="renderMarkdown(aiResponse)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </Card> -->
 		<Card>
 			<template #title>Monthly Report</template>
 			<template #content>
@@ -166,7 +259,6 @@ import { useToast } from '@/Components/ui/toast/use-toast'
 import { format } from 'date-fns'
 import { debounce } from 'vue-debounce'
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
-import { useToast } from '@/Components/ui/toast/use-toast'
 
 export default {
     data(){
@@ -376,31 +468,6 @@ export default {
                     year: year
                 };
                 this.months.push(month);
-            }
-        },
-        async generateShareUrl() {
-            try {
-                const response = await axios.post(route('dashboard.generate_share_url'), {
-                    date: this.monthly_report.params.date,
-                    sales_person: this.monthly_report.params.sales_person
-                });
-
-                const url = response.data.url;
-                
-                // Copy to clipboard
-                await navigator.clipboard.writeText(url);
-                
-                // Show success toast
-                useToast().toast({
-                    title: "Success",
-                    description: "Shareable link copied to clipboard!",
-                });
-            } catch (error) {
-                useToast().toast({
-                    title: "Error",
-                    description: "Failed to generate shareable link",
-                    variant: "destructive"
-                });
             }
         }
     },

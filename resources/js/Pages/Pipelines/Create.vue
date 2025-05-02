@@ -147,7 +147,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-if="form.progress_status.length" v-for="progress_status, progress_status_index in form.progress_status">
+                                <TableRow v-if="form.progress_status.length" v-for="progress_status, progress_status_index in sortedProgressStatus">
                                     <TableCell class="px-6">{{ format(new Date(progress_status.date), 'dd/MM/yyyy') }}</TableCell>
                                     <TableCell>{{ progress_status.case_status_name }}</TableCell>
                                     <TableCell>{{ progress_status.remark }}</TableCell>
@@ -477,6 +477,27 @@ export default {
                 signed_up_programs: []
             },
             progress_form_edit: ''
+        }
+    },
+    computed: {
+        sortedProgressStatus() {
+            return [...this.form.progress_status].sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                
+                // Compare year first
+                const yearA = dateA.getFullYear();
+                const yearB = dateB.getFullYear();
+                if (yearA !== yearB) return yearA - yearB;
+                
+                // Then compare month
+                const monthA = dateA.getMonth();
+                const monthB = dateB.getMonth();
+                if (monthA !== monthB) return monthA - monthB;
+                
+                // If same month and year, sort by case status name
+                return a.case_status_name.localeCompare(b.case_status_name);
+            });
         }
     },
     methods: {

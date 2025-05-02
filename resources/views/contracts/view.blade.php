@@ -230,7 +230,7 @@
                             </tr>
                             <tr>
                                 <td style="border: 1px solid black; padding-left: 10px; padding-right: 10px;">
-                                    In-House Training (North) / Hour
+                                    In-House Training (Peninsular Malaysia) / Hour
                                 </td>
                                 <td style="border: 1px solid black; text-align: center;">RM 300</td>
                                 <td style="border: 1px solid black; text-align: center;">RM {{ $contract->inhouse_training_north_promo }}</td>

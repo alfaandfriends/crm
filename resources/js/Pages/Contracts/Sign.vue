@@ -56,8 +56,39 @@ const resizeCanvas = async (canvas, pad) => {
         minWidth: 0.5,
         maxWidth: 2.5,
         throttle: 16,
-        velocityFilterWeight: 0.2
+        velocityFilterWeight: 0.2,
+        onBegin: () => {
+            // Ensure the canvas is properly cleared before starting a new signature
+            context.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        }
     });
+
+    // Add event listeners to handle touch/mouse events properly
+    const preventScrolling = (e) => {
+        e.preventDefault();
+    };
+
+    // Touch events
+    canvasElement.addEventListener('touchstart', preventScrolling, { passive: false });
+    canvasElement.addEventListener('touchmove', preventScrolling, { passive: false });
+    canvasElement.addEventListener('touchend', preventScrolling, { passive: false });
+    canvasElement.addEventListener('touchcancel', preventScrolling, { passive: false });
+
+    // Mouse events
+    canvasElement.addEventListener('mousedown', preventScrolling, { passive: false });
+    canvasElement.addEventListener('mousemove', preventScrolling, { passive: false });
+    canvasElement.addEventListener('mouseup', preventScrolling, { passive: false });
+
+    // Handle window resize for mobile devices
+    const handleResize = () => {
+        const currentRatio = Math.max(window.devicePixelRatio || 1, 1);
+        if (currentRatio !== ratio) {
+            resizeCanvas(canvas, pad);
+        }
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
 };
 
 const clearCustomerSignature = () => {
