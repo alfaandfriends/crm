@@ -179,6 +179,9 @@ class DashboardController extends Controller
                 ')
                 ->withMessages($messages)
                 ->asStream();
+
+            ob_start();
+            
             return response()->stream(function () use ($output) {
                 foreach ($output as $chunk) {
                     echo $chunk->text;
