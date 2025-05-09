@@ -8,15 +8,36 @@ import { Button } from '@/Components/ui/button'
 import { Sparkles } from 'lucide-vue-next'
 import { useToast } from '@/Components/ui/toast/use-toast'
 import { Textarea } from '@/Components/ui/textarea'
-import { ref, computed } from 'vue'
-import { marked } from 'marked'
+import { ref, nextTick } from 'vue'
 import DOMPurify from 'dompurify'
+import { VueMarkdownIt } from '@f3ve/vue-markdown-it';
+import MarkdownIt from 'markdown-it';
 
 const toast = useToast()
 const aiPrompt = ref('')
 const aiResponse = ref('')
 const isGenerating = ref(false)
 const conversationHistory = ref([])
+
+const md = new MarkdownIt({
+  html: true,
+  linkify: true
+});
+
+md.renderer.rules.table_open = function() {
+  return '<div class="overflow-auto"><table class="ai_table">';
+};
+
+const renderMarkdown = (text) => {
+    return DOMPurify.sanitize(md.render(text));
+}
+
+const handleKeyDown = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault()
+        handlePromptSubmit()
+    }
+}
 
 const handlePromptSubmit = async () => {
     if (!aiPrompt.value.trim()) {
@@ -28,26 +49,44 @@ const handlePromptSubmit = async () => {
         isGenerating.value = true
         aiResponse.value = '' // Clear previous response
 
-        const response = await axios.post('/dashboard/ai-prompt', {
-            prompt: aiPrompt.value,
-            conversation_history: conversationHistory.value
+        // Add the current prompt to conversation history
+        conversationHistory.value.push({
+            role: 'user',
+            content: aiPrompt.value
         })
 
-        if (response.data.response) {
-            aiResponse.value = response.data.response
-            // Add the current prompt and response to conversation history
-            conversationHistory.value.push({
-                role: 'user',
-                content: aiPrompt.value
+        const response = await fetch('/dashboard/ai-prompt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                prompt: aiPrompt.value,
+                conversation_history: conversationHistory.value
             })
-            conversationHistory.value.push({
-                role: 'assistant',
-                content: response.data.response
-            })
-            aiPrompt.value = '' // Clear the prompt after successful submission
-        } else {
-            toast.error('No response received from the AI')
+        })
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let newText = ''
+
+        while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            const chunk = decoder.decode(value, { stream: true })
+            aiResponse.value += chunk
         }
+
+        // Add the complete response to conversation history
+        conversationHistory.value.push({
+            role: 'assistant',
+            content: aiResponse.value
+        })
+
+        aiPrompt.value = '' // Clear the prompt after successful submission
     } catch (error) {
         console.error('Error:', error)
         toast.error('Failed to generate response. Please try again.')
@@ -55,19 +94,15 @@ const handlePromptSubmit = async () => {
         isGenerating.value = false
     }
 }
-
-const renderMarkdown = (text) => {
-    return DOMPurify.sanitize(marked(text))
-}
 </script>
 
 <template>
     <BreezeAuthenticatedLayout>
-        <!-- <Card class="mb-6">
+        <Card class="mb-6">
             <template #title>
                 <div class="flex items-center gap-2">
                     <Sparkles class="w-5 h-5 text-yellow-500" />
-                    <span>AI Assistant</span>
+                    <span>CRM AI Assistant</span>
                 </div>
             </template>
             <template #content>
@@ -75,9 +110,9 @@ const renderMarkdown = (text) => {
                     <div class="flex flex-col gap-2">
                         <Textarea 
                             v-model="aiPrompt" 
-                            placeholder="Ask me anything about your data, trends, or insights..."
+                            placeholder="Ask me anything about your data."
                             class="min-h-[100px] resize-none"
-                            @keydown.enter.prevent="handlePromptSubmit"
+                            @keydown="handleKeyDown"
                         />
                         <div class="flex justify-end">
                             <Button 
@@ -86,25 +121,31 @@ const renderMarkdown = (text) => {
                                 class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                             >
                                 <Sparkles class="w-4 h-4 mr-2" />
-                                {{ isGenerating ? 'Processing...' : 'Generate Insights' }}
+                                {{ isGenerating ? 'Processing...' : 'Generate' }}
                             </Button>
-                        </div>
-                    </div>
-                    
-                    <div v-if="aiResponse" class="p-4 rounded-lg border border-slate-200">
-                        <div class="flex items-start gap-3">
-                            <div class="flex-shrink-0">
-                                <Sparkles class="w-5 h-5 text-yellow-500 mt-1" />
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm text-slate-800 prose prose-sm max-w-none" v-html="renderMarkdown(aiResponse)"></div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </template>
-        </Card> -->
-		<Card>
+        </Card>
+
+        
+        <Card class="mb-6" v-if="aiResponse || isGenerating">
+            <template #title>
+                <div class="flex items-center gap-2">
+                    <Sparkles class="w-5 h-5 text-yellow-500" />
+                    <span>Response</span>
+                </div>
+            </template>
+            <template #content>
+                <div class="flex flex-col gap-2">
+                    <div class="flex-1">
+                        <div v-html="aiResponse ? renderMarkdown(aiResponse) : isGenerating ? 'Thinking...' : ''"></div>
+                    </div>
+                </div>
+            </template>
+        </Card>
+		<!-- <Card>
 			<template #title>Monthly Report</template>
 			<template #content>
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-2">
@@ -251,7 +292,7 @@ const renderMarkdown = (text) => {
                     </table>
                 </div>
 			</template>
-		</Card>
+		</Card> -->
     </BreezeAuthenticatedLayout>
 </template>
 
@@ -478,3 +519,26 @@ export default {
     }
 }
 </script>
+
+<style>
+.ai_table {
+    @apply w-full border-collapse border border-gray-300 mb-4 text-[12px];
+}
+
+.ai_table th,
+.ai_table td {
+    @apply border border-gray-300 px-4 py-2 text-xs;
+}
+
+.ai_table th {
+    @apply bg-gray-100 font-semibold;
+}
+
+.ai_table tr:nth-child(even) {
+    @apply bg-gray-50;
+}
+
+.ai_table tr:hover {
+    @apply bg-gray-100;
+}
+</style>

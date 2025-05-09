@@ -8,14 +8,61 @@ import Pagination from '@/Components/Pagination.vue'
 import { debounce } from 'vue-debounce'
 import { MagnifyingGlassIcon } from '@radix-icons/vue';
 import { PlusCircle, PlusCircleIcon } from 'lucide-vue-next';
+import ComboBox from '@/Components/ComboBox.vue'
+import axios from 'axios'
+import { ref } from 'vue'
+
+const user_list = ref({
+    options: []
+})
+
+const searching_username_email = ref(false)
+
+const findUsernameEmail = debounce(function(query) {
+    if(query){
+        searching_username_email.value = true
+        axios.get(route('users.find_username_email'), {
+            params: {
+                'keyword': query
+            }
+        })
+        .then((res) => {
+            user_list.value.options = res.data
+            searching_username_email.value = false
+        });
+    }
+}, 1000)
+
+const handleUserSearch = debounce((query) => {
+    params.user_filter = query;
+    search();
+}, 300);
 </script>
 
 <template>
 	<BreezeAuthenticatedLayout>
         <div class="flex items-center justify-between mb-3">
-			<div class="relative">
-				<MagnifyingGlassIcon class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-				<Input type="text" placeholder="Search" class="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]" v-debounce:800ms="search" v-model="params.search"/>
+			<div class="grid grid-cols-1 2xl:grid-cols-4 gap-2">
+				<div class="relative">
+					<MagnifyingGlassIcon class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+					<Input type="text" placeholder="Search" class="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]" v-debounce:800ms="search" v-model="params.search"/>
+				</div>
+				<ComboBox 
+					:items="user_list.options" 
+					label-property="display_name" 
+					value-property="value" 
+					v-model="params.user_filter" 
+					select-placeholder="" 
+					search-placeholder="Search sales person name..."
+					@update:modelValue="search"
+					@search="findUsernameEmail"
+					:loading="searching_username_email"
+                    class="w-full"
+				>
+					<template #label="{ item }">
+						<span class="font-medium">{{ item.display_name }}<br><small class="font-normal">{{ item.user_email ? item.user_email : 'Email not available' }}</small></span>
+					</template>
+				</ComboBox>
 			</div>
             <Button @click="$inertia.get(route('pipelines.create'))">
                 <PlusCircleIcon class="h-4 w-4" />
@@ -104,6 +151,7 @@ export default {
 			pipeline_id_to_delete: '',
             params: {
                 search: this.filter.search ? this.filter.search : '',
+                user_filter: this.filter.user_filter ? this.filter.user_filter : '',
             },
             confirmation: {
                 is_open: false,

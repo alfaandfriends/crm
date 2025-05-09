@@ -24,6 +24,9 @@ class PipelineController extends Controller
                             ->when(request('search'), function($query, $search) {
                                 $query->where('crm_pipelines.school_name', 'LIKE', "%".$search."%");
                             })
+                            ->when(request('user_filter'), function($query, $user_id) {
+                                $query->where('crm_pipelines.assignee_user_id', $user_id);
+                            })
                             ->when(!Auth::user()->hasRole('admin'), function($query, $search) {
                                 $query->where('crm_pipelines.assignee_user_id', Auth::user()->ID);
                             })
@@ -38,8 +41,8 @@ class PipelineController extends Controller
                             ->paginate(10);
         
         return Inertia::render('Pipelines/Index',[
-            'filter'    => request()->all('search'),
-            'pipelines' =>  $pipelines
+            'filter'    => request()->all(['search', 'user_filter']),
+            'pipelines' => $pipelines,
         ]);
     }
 

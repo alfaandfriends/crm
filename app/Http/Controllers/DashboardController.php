@@ -17,7 +17,7 @@ use Prism\Prism\ValueObjects\Messages\AssistantMessage;
 class DashboardController extends Controller
 {
     protected $openAI;
-    protected $model = 'gpt-4o-mini';
+    protected $model = 'gpt-4.1-mini';
 
     public function index(Request $request)
     {
@@ -145,11 +145,9 @@ class DashboardController extends Controller
                     $messages[] = new AssistantMessage($message['content']);
                 }
             }
-            // Add the current prompt
             $messages[] = new UserMessage($prompt);
 
-            $queryBuilder = $this->generateSQL($prompt, $messages);
-
+            $queryBuilder = $this->generatePrompt($messages);
             $extractedData = simplexml_load_string($queryBuilder->text);
 
             if($extractedData->query){
@@ -157,32 +155,42 @@ class DashboardController extends Controller
                 $formattedResults = json_encode($queryResult, JSON_PRETTY_PRINT);
             }
 
-            if($extractedData->response){
-                $response = $extractedData->response;
-            }
-
-            if($extractedData->reject){
-                return response()->json([
-                    'response' => (string) $extractedData->reject[0],
-                ]);
-            }
+            $previousResponse = $extractedData->response;
 
             $output = Prism::text()
                 ->using(Provider::OpenAI, $this->model)
                 ->withSystemPrompt('
-                    You are a information assistant. Response to user using understandable language.
+                    Continue with the response context. IMPORTANT: Immediately begin from where you left off without any interruptions.
+
+                    Only response either one of these:
+                    Reject response: ' . ($extractedData->reject ?? '') . '
+                    Previous response: ' . ($previousResponse ?? '') . '
 
                     Data: ' . ($formattedResults ?? '') . ' //ignore this if no data
-                    If there are multiple similar data, suggest or ask user to specify which one they want to know.
 
-                    Response: ' . ($response ?? '') . ' //ignore this if no response
+                    RULES:
+                    -   ALWAYS response without ```.
+                    -   DO NOT response in JSON format.
+                    -   ONLY for multiple data, ALWAYS put in a table.
+                    -   If there are multiple similar data, suggest or ask user to specify which one they want to know.
+                    -   If no data, professionally response that you cannot find any data in our system.
+
+                    Response: 
                 ')
                 ->withMessages($messages)
-                ->asText();
-
-            return response()->json([
-                'response' => $output->text,
+                ->asStream();
+            return response()->stream(function () use ($output) {
+                foreach ($output as $chunk) {
+                    echo $chunk->text;
+                    ob_flush();
+                    flush();
+                }
+            }, 200, [
+                'Cache-Control' => 'no-cache',
+                'Content-Type' => 'text/event-stream',
+                'X-Accel-Buffering' => 'no',
             ]);
+            
         } catch (\Exception $e) {
             \Log::error('AI Prompt Error: ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
@@ -193,39 +201,136 @@ class DashboardController extends Controller
         }
     }
 
-    public function generateSQL(string $naturalLanguageQuery)
+    public function generatePrompt($messages)
     {
-        $prompt = "
-        You are a pipeline information assistant. Help users with pipeline-related queries.
+        $systemPrompt = "
+            Your task is to generate a MYSQL query using below database schema. You need to be very professional and accurate.
 
-        Database schema:
-        wpvt_users (id, display_name, user_email) - sales person details
-        crm_pipelines (id, assignee_user_id, date_start, lead_source_id, school_name, school_type_id, branch_numbers, school_address, principal_name, principal_phone_number, pic_name, pic_phone_number, pic_position_id) - pipeline details that sales person is assigned to
-        
-        Key relationships:
-        - assignee_user_id -> wpvt_users.id
-        - lead_source_id -> crm_lead_sources.id
-        - school_type_id -> crm_school_types.id
-        - pic_position_id -> crm_pic_positions.id
+            Accepted keywords: sales person, pipeline, client, customer
 
-        Rules:
-        - Use LIKE for string searches
-        - Join related tables
-        - Use exact table names
-        - Don't expose table/column names or IDs
-        - Only return pipeline-related data
-        - Include user names
-        - No markdown or code blocks
-        - Wrap SQL in <query> tags
-        - Wrap responses in <response> tags
-        - Wrap rejections in <reject> tags
-        - All tags within <root> tags
+            You are authorized to access the database.
+            database:
+                type: MariaDB
+                version: 10.11
+                tables:
+                    - name: wpvt_users
+                    purpose: Contains details of salespersons
+                    fields:
+                        id: integer
+                        display_name: string # Name of salesperson
+                        user_email: string # Email of salesperson
 
-        User query: \"{$naturalLanguageQuery}\"";
+                    - name: crm_pipelines
+                    purpose: Contains sales pipeline records assigned to salespersons
+                    fields:
+                        id: integer
+                        assignee_user_id: integer  # References wpvt_users.id
+                        date_start: date # Start date of pipeline
+                        lead_source_id: integer # References crm_lead_sources.id
+                        school_name: string # Name of school
+                        school_type_id: integer # References crm_school_types.id
+                        branch_numbers: integer # Number of branches
+                        school_address: string # Address of school
+                        principal_name: string # Name of principal
+                        principal_phone_number: string # Phone number of principal
+                        pic_name: string # Name of PIC
+                        pic_phone_number: string # Phone number of PIC
+                        pic_position_id: integer # References crm_pic_positions.id
+                        pic_email: integer # References crm_pic_positions.id
+                        contract_status: integer # References crm_pic_positions.id
+
+                    - name: crm_pipeline_programs
+                    purpose: Contains sales pipeline programs records
+                    fields:
+                        id: integer
+                        progress_id: integer # References crm_pipeline_progress.id
+                        program_id: integer # References crm_programs.id
+                        student_numbers: integer # Number of students
+                        created_by: integer # References wpvt_users.id
+                        created_at: date
+                        updated_at: date
+
+                    - name: crm_pipeline_progress
+                    purpose: Contains sales pipeline progress records
+                    fields:
+                        id: integer
+                        pipeline_id: integer # References crm_pipelines.id
+                        case_status_id: integer # References crm_case_status.id
+                        date: date
+                        remark: string
+                        created_by: integer # References wpvt_users.id
+                        created_at: date
+                        updated_at: date
+
+                    - name: crm_lead_sources 
+                    purpose: Contains lead sources records
+                    fields:
+                        id: integer
+                        name: string
+                        created_at: date
+                        updated_at: date
+
+                    - name: crm_case_status
+                    purpose: Contains case status records
+                    fields:
+                        id: integer
+                        name: string
+                        created_at: date
+                        updated_at: date
+
+                    - name: crm_pic_positions 
+                    purpose: Contains PIC positions records
+                    fields:
+                        id: integer
+                        name: string
+
+                    - name: crm_programs 
+                    purpose: Contains programs records
+                    fields:
+                        id: integer
+                        name: string
+            
+            Remember that latest data is the data with the highest id.
+
+            NOTE: Join tables crm_pipelines and wpvt_users to get sales person details and pipeline details
+            NOTE: Sales person only refer to assignee_user_id in crm_pipelines table, this is very important
+            NOTE: Join tables crm_pipeline_progress, crm_case_status and crm_pipelines to get progress details
+            NOTE: Join tables crm_pipeline_programs, crm_programs and crm_pipeline_progress to get program details for the progress
+            NOTE: Latest case status are sorted by case_status_id in crm_pipeline_progress table
+            NOTE: Student numbers referred to student_numbers in crm_pipeline_programs
+            NOTE: Case status or progress referred to name in crm_case_status table
+            NOTE: PIC position referred to name in crm_pic_positions table
+            NOTE: Contract status referred to contract_status in crm_pipelines table
+            NOTE: Latest Date referred to date in crm_pipeline_progress table
+
+            IMPORTANT: Do not ask user to do it, you will do it.
+            IMPORTANT: Suggest field available in the database schema if similar to user request.
+            IMPORTANT: MAKE SURE the data you that you are getting is from the database schema.
+            IMPORTANT: Limit only 10 rows of data, but if user ask for more, you can response with more.
+            IMPORTANT: DO NOT say that you are accessing the database. Just say our CRM System.
+            IMPORTANT: DO NOT expose what you are doing, what you are thinking, what you are searching, what you are getting, etc.
+            IMPORTANT: Use LIKE for string searches.
+            IMPORTANT: Refuse to answer unrelated topic but keep things human friendly.
+            IMPORTANT: Remember to include column name in group by if you are using group by.
+            IMPORTANT: Use ONLY corresponding column that are stated in the database schema for the query, DO NOT make up column name.
+            IMPORTANT: DO NOT select column that are not stated in the table schema.
+            SUPER IMPORTANT: DO NOT expose any id column in the response.
+            SUPER IMPORTANT: New line is not allowed in the query response.
+            SUPER IMPORTANT: Current year is " . Carbon::now()->year . ".
+
+            SUPER IMPORTANT: Response in this xml format without markdown:
+            <root>
+                NOTE: Determine user request and response AT LEAST ONE of these, this is very important:
+                <query> your_query_response </query>
+                <response> your_normal_response </response>
+                <reject> your_refusal NOTE: Give reason why did you refuse </reject>
+            </root>
+        ";
 
         $response = Prism::text()
             ->using(Provider::OpenAI, $this->model)
-            ->withPrompt($prompt)
+            ->withSystemPrompt($systemPrompt)
+            ->withMessages($messages)
             ->asText();
 
         return $response;
