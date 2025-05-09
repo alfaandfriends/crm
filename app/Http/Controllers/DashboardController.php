@@ -183,7 +183,7 @@ class DashboardController extends Controller
                 foreach ($output as $chunk) {
                     echo $chunk->text;
                     ob_flush();
-                    flush();
+                    // flush();
                 }
             // }, 200, [
             //     'Cache-Control' => 'no-cache',
