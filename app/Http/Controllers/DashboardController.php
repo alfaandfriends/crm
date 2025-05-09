@@ -179,18 +179,17 @@ class DashboardController extends Controller
                 ')
                 ->withMessages($messages)
                 ->asStream();
-
-            return response()->stream(function () use ($output) {
+            // return response()->stream(function () use ($output) {
                 foreach ($output as $chunk) {
                     echo $chunk->text;
                     ob_flush();
                     flush();
                 }
-            }, 200, [
-                'Cache-Control' => 'no-cache',
-                'Content-Type' => 'text/event-stream',
-                'X-Accel-Buffering' => 'no',
-            ]);
+            // }, 200, [
+            //     'Cache-Control' => 'no-cache',
+            //     'Content-Type' => 'text/event-stream',
+            //     'X-Accel-Buffering' => 'no',
+            // ]);
             
         } catch (\Exception $e) {
             \Log::error('AI Prompt Error: ' . $e->getMessage());
