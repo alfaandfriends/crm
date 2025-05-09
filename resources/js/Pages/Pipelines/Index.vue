@@ -53,7 +53,7 @@ const handleUserSearch = debounce((query) => {
 					label-property="display_name" 
 					value-property="value" 
 					v-model="params.user_filter" 
-					select-placeholder="" 
+					select-placeholder="Find sales person..." 
 					search-placeholder="Search sales person name..."
 					@update:modelValue="search"
 					@search="findUsernameEmail"
