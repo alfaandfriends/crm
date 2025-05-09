@@ -48,6 +48,7 @@ const handleUserSearch = debounce((query) => {
 					<Input type="text" placeholder="Search" class="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]" v-debounce:800ms="search" v-model="params.search"/>
 				</div>
 				<ComboBox 
+					v-if="$page.props.is_admin"
 					:items="user_list.options" 
 					label-property="display_name" 
 					value-property="value" 
