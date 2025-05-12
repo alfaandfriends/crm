@@ -181,11 +181,11 @@ class DashboardController extends Controller
                     ')
                     ->withMessages($messages)
                     ->asStream();
-
+                    
+                ob_implicit_flush(true);
+                ob_end_flush();
                 foreach ($output as $chunk) {
                     echo $chunk->text;
-                    ob_flush();
-                    flush();
                 }
             }, 200, [
                 'Cache-Control' => 'no-cache',
