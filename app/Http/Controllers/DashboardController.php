@@ -150,6 +150,7 @@ class DashboardController extends Controller
             $queryBuilder = $this->generatePrompt($messages);
             $extractedData = simplexml_load_string($queryBuilder->text);
 
+            $formattedResults = '';
             if($extractedData->query){
                 $queryResult = DB::select($extractedData->query);
                 $formattedResults = json_encode($queryResult, JSON_PRETTY_PRINT);
@@ -157,39 +158,40 @@ class DashboardController extends Controller
 
             $previousResponse = $extractedData->response;
 
-            $output = Prism::text()
-                ->using(Provider::OpenAI, $this->model)
-                ->withSystemPrompt('
-                    Continue with the response context. IMPORTANT: Immediately begin from where you left off without any interruptions.
+            return response()->stream(function () use ($extractedData, $previousResponse, $formattedResults, $messages) {
+                $output = Prism::text()
+                    ->using(Provider::OpenAI, $this->model)
+                    ->withSystemPrompt('
+                        Continue with the response context. IMPORTANT: Immediately begin from where you left off without any interruptions.
 
-                    Only response either one of these:
-                    Reject response: ' . ($extractedData->reject ?? '') . '
-                    Previous response: ' . ($previousResponse ?? '') . '
+                        Only response either one of these:
+                        Reject response: ' . ($extractedData->reject ?? '') . '
+                        Previous response: ' . ($previousResponse ?? '') . '
 
-                    Data: ' . ($formattedResults ?? '') . ' //ignore this if no data
+                        Data: ' . ($formattedResults ?? '') . ' //ignore this if no data
 
-                    RULES:
-                    -   ALWAYS response without ```.
-                    -   DO NOT response in JSON format.
-                    -   ONLY for multiple data, ALWAYS put in a table.
-                    -   If there are multiple similar data, suggest or ask user to specify which one they want to know.
-                    -   If no data, professionally response that you cannot find any data in our system.
+                        RULES:
+                        -   ALWAYS response without ```.
+                        -   DO NOT response in JSON format.
+                        -   ONLY for multiple data, ALWAYS put in a table.
+                        -   If there are multiple similar data, suggest or ask user to specify which one they want to know.
+                        -   If no data, professionally response that you cannot find any data in our system.
 
-                    Response: 
-                ')
-                ->withMessages($messages)
-                ->asStream();
-            // return response()->stream(function () use ($output) {
+                        Response: 
+                    ')
+                    ->withMessages($messages)
+                    ->asStream();
+
                 foreach ($output as $chunk) {
                     echo $chunk->text;
                     ob_flush();
-                    // flush();
+                    flush();
                 }
-            // }, 200, [
-            //     'Cache-Control' => 'no-cache',
-            //     'Content-Type' => 'text/event-stream',
-            //     'X-Accel-Buffering' => 'no',
-            // ]);
+            }, 200, [
+                'Cache-Control' => 'no-cache',
+                'Content-Type' => 'text/event-stream',
+                'X-Accel-Buffering' => 'no',
+            ]);
             
         } catch (\Exception $e) {
             \Log::error('AI Prompt Error: ' . $e->getMessage());

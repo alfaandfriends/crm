@@ -53,9 +53,8 @@ class AuthenticatedSessionController extends Controller
                 // Regenerate the session to prevent session fixation attacks
                 $request->session()->regenerate();
 
-
-                // Redirect to the intended page
-                return redirect()->intended('dashboard');
+                // Redirect to the intended page with CSRF token
+                return redirect()->intended('dashboard')->with('csrf_token', csrf_token());
             }
         }
  

@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import BreezeAuthenticatedLayout from '@/Layouts/Authenticated.vue';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
 import Card from '@/Components/Card.vue'
@@ -8,16 +8,27 @@ import { Button } from '@/Components/ui/button'
 import { Sparkles } from 'lucide-vue-next'
 import { useToast } from '@/Components/ui/toast/use-toast'
 import { Textarea } from '@/Components/ui/textarea'
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted, watch } from 'vue'
 import DOMPurify from 'dompurify'
 import { VueMarkdownIt } from '@f3ve/vue-markdown-it';
 import MarkdownIt from 'markdown-it';
 
 const toast = useToast()
+const page = usePage()
 const aiPrompt = ref('')
 const aiResponse = ref('')
 const isGenerating = ref(false)
 const conversationHistory = ref([])
+
+// Update CSRF token whenever it changes in the shared data
+watch(() => page.props.csrf_token, (newToken) => {
+    if (newToken) {
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+            metaTag.setAttribute('content', newToken);
+        }
+    }
+}, { immediate: true });
 
 const md = new MarkdownIt({
   html: true,
