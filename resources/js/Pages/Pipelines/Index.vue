@@ -82,7 +82,7 @@ const handleUserSearch = debounce((query) => {
                         <TableHead>Principal Name</TableHead>
                         <TableHead>Phone Number</TableHead>
                         <!-- <TableHead>Address</TableHead> -->
-                        <TableHead class="text-center">Contract Status</TableHead>
+                        <TableHead class="text-center">Progress Status</TableHead>
                         <TableHead class="text-center">Action</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -104,9 +104,8 @@ const handleUserSearch = debounce((query) => {
                             <TableCell>{{ pipeline.principal_phone_number }}</TableCell>
                             <!-- <TableCell class="max-w-[200px] truncate">{{ pipeline.school_address }}</TableCell> -->
                             <TableCell class="text-center">
-                                <Badge :variant="pipeline.contract_status === 'Pending' ? 'secondary' : 'default'" 
-                                       :class="pipeline.contract_status === 'Pending' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'">
-                                    {{ pipeline.contract_status }}
+                                <Badge variant="outline" :class="pipeline.latest_status ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'">
+                                    {{ pipeline.latest_status ?? 'Not Available' }}
                                 </Badge>
                             </TableCell>
                             <TableCell class="text-center space-x-1">

@@ -21,6 +21,15 @@ class PipelineController extends Controller
     {
         $pipelines  =   DB::table('crm_pipelines')
                             ->join('crm_school_types', 'crm_pipelines.school_type_id', '=', 'crm_school_types.id')
+                            ->leftJoin('crm_pipeline_progress', function($join) {
+                                $join->on('crm_pipelines.id', '=', 'crm_pipeline_progress.pipeline_id')
+                                    ->whereRaw('crm_pipeline_progress.id = (
+                                        SELECT id FROM crm_pipeline_progress 
+                                        WHERE pipeline_id = crm_pipelines.id 
+                                        ORDER BY date DESC LIMIT 1
+                                    )');
+                            })
+                            ->leftJoin('crm_case_status', 'crm_pipeline_progress.case_status_id', '=', 'crm_case_status.id')
                             ->when(request('search'), function($query, $search) {
                                 $query->where('crm_pipelines.school_name', 'LIKE', "%".$search."%");
                             })
@@ -37,7 +46,10 @@ class PipelineController extends Controller
                                 'crm_pipelines.principal_name', 
                                 'crm_pipelines.principal_phone_number', 
                                 'crm_pipelines.school_address',
-                                'crm_pipelines.contract_status',)
+                                'crm_pipelines.contract_status',
+                                'crm_case_status.name as latest_status',
+                                'crm_pipeline_progress.date as latest_status_date'
+                            )
                             ->paginate(10);
         
         return Inertia::render('Pipelines/Index',[
@@ -51,7 +63,7 @@ class PipelineController extends Controller
         $lead_sources           =   DB::table('crm_lead_sources')->get();
         $school_types           =   DB::table('crm_school_types')->get();
         $pic_positions          =   DB::table('crm_pic_positions')->get();
-        $case_status            =   DB::table('crm_case_status')->get();
+        $case_status            =   DB::table('crm_case_status')->orderBy('sequence', 'desc')->get();
         $programs               =   DB::table('crm_programs')->get();
         $contract_status        =   ContractStatus::cases();
         
@@ -207,7 +219,7 @@ class PipelineController extends Controller
         $lead_sources   =   DB::table('crm_lead_sources')->get();
         $school_types   =   DB::table('crm_school_types')->get();
         $pic_positions  =   DB::table('crm_pic_positions')->get();
-        $case_status    =   DB::table('crm_case_status')->get();
+        $case_status    =   DB::table('crm_case_status')->orderBy('sequence', 'desc')->get();
         $programs       =   DB::table('crm_programs')->get();
         $contract_status = ContractStatus::cases();
         // dd($contract_status);
