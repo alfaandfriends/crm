@@ -26,7 +26,7 @@ class PipelineController extends Controller
                                     ->whereRaw('crm_pipeline_progress.id = (
                                         SELECT id FROM crm_pipeline_progress 
                                         WHERE pipeline_id = crm_pipelines.id 
-                                        ORDER BY date DESC LIMIT 1
+                                        ORDER BY case_status_id DESC LIMIT 1
                                     )');
                             })
                             ->leftJoin('crm_case_status', 'crm_pipeline_progress.case_status_id', '=', 'crm_case_status.id')
@@ -48,7 +48,6 @@ class PipelineController extends Controller
                                 'crm_pipelines.school_address',
                                 'crm_pipelines.contract_status',
                                 'crm_case_status.name as latest_status',
-                                'crm_pipeline_progress.date as latest_status_date'
                             )
                             ->paginate(10);
         
