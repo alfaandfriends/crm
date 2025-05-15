@@ -170,14 +170,16 @@ class DashboardController extends Controller
 
                         Data: ' . ($formattedResults ?? '') . ' //ignore this if no data
 
-                        SUPER IMPORTANT: Include chart in the response if user request for it.
-                        SUPER IMPORTANT: Make the chart smaller just enough to read.
-                        SUPER IMPORTANT: ALWAYS respond chart in markdown format.
-                        SUPER IMPORTANT: Chart height should be smaller than normal.
+                        IMPORTANT: Include chart in the response if user request for it.
+                        SUPER IMPORTANT: chart must be wrap in markdown format.
                         
-                        <chart_example>
+                        <response_with_chart_example>
+                            your_response_here
+
                             ```chart\n{\n  "type": "pie",\n  "data": {\n    "labels": ["Direct Sales", "Online Sales", "Partner Sales"],\n    "datasets": [{\n      "data": [45, 30, 25],\n      "backgroundColor": ["#FF6384", "#36A2EB", "#FFCE56"],\n      "hoverBackgroundColor": ["#FF6384", "#36A2EB", "#FFCE56"]\n    }]\n  },\n  "options": {\n    "responsive": true,\n    "plugins": {\n      "title": {\n        "display": true,\n        "text": "Sales Distribution by Channel"\n      }\n    }\n  }\n}\n```
-                        </chart_example>
+
+                            your_explanation_here
+                        </response_with_chart_example>
 
                         RULES:
                         -   ALWAYS response without ```.
