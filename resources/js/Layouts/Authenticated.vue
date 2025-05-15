@@ -13,6 +13,10 @@ import { onMounted, watch, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { useToast } from '@/Components/ui/toast/use-toast'
 import { Toaster } from '@/Components/ui/toast'
+import Chart from 'chart.js/auto'
+
+// Make Chart available globally
+window.Chart = Chart;
 
 const { toast } = useToast();
 const page = usePage();

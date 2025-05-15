@@ -12,6 +12,7 @@ import { ref, nextTick, onMounted, watch } from 'vue'
 import DOMPurify from 'dompurify'
 import { VueMarkdownIt } from '@f3ve/vue-markdown-it';
 import MarkdownIt from 'markdown-it';
+import markdownItCharts from 'markdown-it-charts';
 
 const toast = useToast()
 const page = usePage()
@@ -35,12 +36,27 @@ const md = new MarkdownIt({
   linkify: true
 });
 
+md.use(markdownItCharts);
+
 md.renderer.rules.table_open = function() {
   return '<div class="overflow-auto"><table class="ai_table">';
 };
 
 const renderMarkdown = (text) => {
-    return DOMPurify.sanitize(md.render(text));
+    const rendered = md.render(text);
+    // Initialize charts after rendering
+    nextTick(() => {
+        const chartElements = document.querySelectorAll('.chartjs');
+        chartElements.forEach((element) => {
+            try {
+                const chartData = JSON.parse(element.innerHTML);
+                new Chart(element.getContext('2d'), chartData);
+            } catch (error) {
+                console.error('Error initializing chart:', error);
+            }
+        });
+    });
+    return DOMPurify.sanitize(rendered);
 }
 
 const handleKeyDown = (event) => {
@@ -551,5 +567,10 @@ export default {
 
 .ai_table tr:hover {
     @apply bg-gray-100;
+}
+
+.chartjs {
+    max-height: 500px;
+    max-width: 500px;
 }
 </style>
