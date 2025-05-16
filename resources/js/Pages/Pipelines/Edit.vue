@@ -1460,7 +1460,7 @@ const sendContract = () => {
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell class="px-6">In-House Training (North) / Hour</TableCell>
+                                        <TableCell class="px-6">In-House Training (Peninsular) / Hour</TableCell>
                                         <TableCell>
                                             <Input 
                                                 type="number" 

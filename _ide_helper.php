@@ -9888,8 +9888,8 @@ namespace Illuminate\Support\Facades {
          * @return \Illuminate\Contracts\Auth\PasswordBroker 
          * @static 
          */        public static function broker($name = null)
-        {
-                        /** @var \Illuminate\Auth\Passwords\PasswordBrokerManager $instance */
+        {            //Method inherited from \Illuminate\Auth\Passwords\PasswordBrokerManager         
+                        /** @var \App\Auth\PasswordBrokerManager $instance */
                         return $instance->broker($name);
         }
                     /**
@@ -9898,8 +9898,8 @@ namespace Illuminate\Support\Facades {
          * @return string 
          * @static 
          */        public static function getDefaultDriver()
-        {
-                        /** @var \Illuminate\Auth\Passwords\PasswordBrokerManager $instance */
+        {            //Method inherited from \Illuminate\Auth\Passwords\PasswordBrokerManager         
+                        /** @var \App\Auth\PasswordBrokerManager $instance */
                         return $instance->getDefaultDriver();
         }
                     /**
@@ -9909,8 +9909,8 @@ namespace Illuminate\Support\Facades {
          * @return void 
          * @static 
          */        public static function setDefaultDriver($name)
-        {
-                        /** @var \Illuminate\Auth\Passwords\PasswordBrokerManager $instance */
+        {            //Method inherited from \Illuminate\Auth\Passwords\PasswordBrokerManager         
+                        /** @var \App\Auth\PasswordBrokerManager $instance */
                         $instance->setDefaultDriver($name);
         }
             }

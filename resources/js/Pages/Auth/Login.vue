@@ -3,6 +3,10 @@ import BreezeGuestLayout from '@/Layouts/Guest.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import Card from '@/Components/Card.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
+import { Label } from '@/Components/ui/label';
+import { Input } from '@/Components/ui/input';
+import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 
 defineProps({
     canResetPassword: Boolean,
@@ -53,6 +57,13 @@ const submit = () => {
                                     <Checkbox id="terms" v-model:checked="form.remember"/>
                                     <span>Remember me</span>
                                 </Label>
+                                <Link
+                                    v-if="canResetPassword"
+                                    :href="route('password.request')"
+                                    class="text-sm text-gray-600 hover:text-gray-900"
+                                >
+                                    Forgot password?
+                                </Link>
                             </div>
                             <Button class="w-full" @click="submit" :disabled="form.processing">Log in</Button>
                         </div>

@@ -1,19 +1,18 @@
 <script setup>
-import GuestLayout from '@/Layouts/Guest.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import BreezeGuestLayout from '@/Layouts/Guest.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import Card from '@/Components/Card.vue';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
+import { Label } from '@/Components/ui/label';
+import { Input } from '@/Components/ui/input';
+import { Button } from '@/Components/ui/button';
 
 defineProps({
-    status: {
-        type: String,
-    },
+    status: String,
 });
 
 const form = useForm({
-    email: '',
+    user_email: '',
 });
 
 const submit = () => {
@@ -22,47 +21,47 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
+    <BreezeGuestLayout>
         <Head title="Forgot Password" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            Forgot your password? No problem. Just let us know your email
-            address and we will email you a password reset link that will allow
-            you to choose a new one.
-        </div>
+        <Card>
+            <template #title>
+                <h3>Forgot Password</h3>
+            </template>
+            <template #description>
+                Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.
+            </template>
+            <template #content>
+                <Alert v-if="status" class="mb-4">
+                    <AlertDescription>{{ status }}</AlertDescription>
+                </Alert>
 
-        <div
-            v-if="status"
-            class="mb-4 text-sm font-medium text-green-600"
-        >
-            {{ status }}
-        </div>
+                <Alert variant="destructive" v-if="Object.keys($page.props.errors).length > 0">
+                    <AlertDescription v-for="(error, key) in $page.props.errors" :key="key">
+                        {{ error }}
+                    </AlertDescription>
+                </Alert>
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
+                <form @submit.prevent="submit">
+                    <div class="grid gap-4">
+                        <div class="grid gap-2">
+                            <Label for="user_email">Email</Label>
+                            <Input
+                                id="user_email"
+                                type="email"
+                                v-model="form.user_email"
+                                required
+                                autofocus
+                                autocomplete="username"
+                            />
+                        </div>
 
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
-                />
-
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Email Password Reset Link
-                </PrimaryButton>
-            </div>
-        </form>
-    </GuestLayout>
+                        <Button class="w-full" type="submit" :disabled="form.processing">
+                            Email Password Reset Link
+                        </Button>
+                    </div>
+                </form>
+            </template>
+        </Card>
+    </BreezeGuestLayout>
 </template>

@@ -47,14 +47,10 @@ class AuthenticatedSessionController extends Controller
             // Check the password using the custom algorithm
             if (WpPassword::check($request->password, $current_password)) {
                 // Manually log in the user
-
                 Auth::login($user);
 
-                // Regenerate the session to prevent session fixation attacks
-                $request->session()->regenerate();
-
-                // Redirect to the intended page with CSRF token
-                return redirect()->intended('dashboard')->with('csrf_token', csrf_token());
+                // Redirect to the intended page
+                return redirect()->intended('dashboard');
             }
         }
  
@@ -71,9 +67,8 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('login');
     }
 }

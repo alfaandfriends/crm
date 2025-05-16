@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         //
     })
+    ->withProviders([
+        \App\Providers\PasswordResetServiceProvider::class,
+    ])
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
