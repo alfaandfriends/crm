@@ -1,6 +1,6 @@
 <script setup>
 import BreezeGuestLayout from '@/Layouts/Guest.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import Card from '@/Components/Card.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
 import { Label } from '@/Components/ui/label';
@@ -24,6 +24,8 @@ const submit = () => {
         onFinish: () => form.reset('password'),
     });
 };
+
+const page = usePage();
 </script>
 
 <template>
@@ -42,6 +44,15 @@ const submit = () => {
                             {{ error }}
                         </AlertDescription>
                     </Alert>
+                    <div
+                        v-if="page.props.flash.success"
+                        class="mb-4 rounded border border-green-300 bg-green-50 px-4 py-3 text-green-800 text-sm flex items-center gap-2"
+                    >
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        {{ page.props.flash.success }}
+                    </div>
                     <form @submit.prevent="submit">
                         <div class="grid gap-4">
                             <div class="grid gap-2">

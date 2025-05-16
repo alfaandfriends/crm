@@ -56,6 +56,4 @@ Route::prefix('contract')->group(function () {
     Route::post('/sign/{token}', [ContractController::class, 'processSign'])->name('contract.process_sign');
 });
 
-
-
 require __DIR__.'/auth.php';

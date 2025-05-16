@@ -45,6 +45,17 @@ const submit = () => {
                 <form @submit.prevent="submit">
                     <div class="grid gap-4">
                         <div class="grid gap-2">
+                            <Label for="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                v-model="form.user_email"
+                                readonly
+                                disabled
+                            />
+                        </div>
+
+                        <div class="grid gap-2">
                             <Label for="password">New Password</Label>
                             <Input
                                 id="password"
