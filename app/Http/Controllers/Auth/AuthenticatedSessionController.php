@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
-use MikeMcLin\WpPassword\Facades\WpPassword;
+use Illuminate\Support\Facades\Hash;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -44,12 +44,9 @@ class AuthenticatedSessionController extends Controller
             // Retrieve the hashed password from the database
             $current_password = $user->user_pass;
 
-            // Check the password using the custom algorithm
-            if (WpPassword::check($request->password, $current_password)) {
-                // Manually log in the user
+            // First, check with bcrypt (Laravel default)
+            if (Hash::check($request->password, $current_password)) {
                 Auth::login($user);
-
-                // Redirect to the intended page
                 return redirect()->intended('dashboard');
             }
         }
