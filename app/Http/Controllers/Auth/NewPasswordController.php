@@ -46,8 +46,13 @@ class NewPasswordController extends Controller
         $status = Password::reset(
             $request->only('user_email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
+                // First hash the password with WordPress algorithm
+                $wp_hash = base64_encode(hash_hmac('sha384', $request->password, 'wp-sha384', true));
+                // Then hash it with bcrypt and add the $wp$ prefix
+                $hashed_password = '$wp$' . password_hash($wp_hash, PASSWORD_DEFAULT);
+                
                 $user->forceFill([
-                    'user_pass' => '$wp$' . password_hash(base64_encode(hash_hmac('sha384', $request->password, 'wp-sha384', true)), PASSWORD_DEFAULT),
+                    'user_pass' => $hashed_password,
                     'remember_token' => Str::random(60),
                 ])->save();
 

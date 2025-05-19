@@ -59,7 +59,7 @@ namespace App\Models{
  *
  * @property int $ID
  * @property string $user_login
- * @property mixed $user_pass
+ * @property string $user_pass
  * @property string $user_nicename
  * @property string $user_email
  * @property int|null $user_country_id
