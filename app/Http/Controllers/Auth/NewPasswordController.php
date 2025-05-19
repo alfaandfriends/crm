@@ -47,7 +47,7 @@ class NewPasswordController extends Controller
             $request->only('user_email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
                 $user->forceFill([
-                    'user_pass' => Hash::make($request->password),
+                    'user_pass' => '$wp$' . password_hash(base64_encode(hash_hmac('sha384', $request->password, 'wp-sha384', true)), PASSWORD_DEFAULT),
                     'remember_token' => Str::random(60),
                 ])->save();
 
