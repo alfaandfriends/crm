@@ -48,8 +48,8 @@ class NewPasswordController extends Controller
             function ($user) use ($request) {
                 // First hash the password with WordPress algorithm
                 $wp_hash = base64_encode(hash_hmac('sha384', $request->password, 'wp-sha384', true));
-                // Then hash it with bcrypt and add the $wp$ prefix
-                $hashed_password = '$wp$' . password_hash($wp_hash, PASSWORD_DEFAULT);
+                // Then hash it with bcrypt and add the $wp prefix
+                $hashed_password = '$wp' . password_hash($wp_hash, PASSWORD_DEFAULT);
                 
                 $user->forceFill([
                     'user_pass' => $hashed_password,

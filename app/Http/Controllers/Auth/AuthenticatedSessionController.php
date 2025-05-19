@@ -46,9 +46,9 @@ class AuthenticatedSessionController extends Controller
 
             $authorized = false;
             
-            if (str_starts_with($current_password, '$wp$')) {
+            if (str_starts_with($current_password, '$wp')) {
                 $password_to_verify = base64_encode(hash_hmac('sha384', $request->password, 'wp-sha384', true));
-                $authorized = password_verify($password_to_verify, substr($current_password, 4));
+                $authorized = password_verify($password_to_verify, substr($current_password, 3));
             } else {
                 $authorized = WpPassword::check($request->password, $current_password);
             }
