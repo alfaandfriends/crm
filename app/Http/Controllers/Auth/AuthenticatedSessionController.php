@@ -46,7 +46,7 @@ class AuthenticatedSessionController extends Controller
 
             // If hash starts with $wp$2y$, strip the $wp$ prefix
             if (strpos($current_password, '$wp$2y$') === 0) {
-                $current_password = substr($current_password, 4); // Remove the $wp$ prefix
+                $current_password = substr($current_password, 3); // Remove the $wp$ prefix
             }
 
             // Check the password using bcrypt (Laravel default)
