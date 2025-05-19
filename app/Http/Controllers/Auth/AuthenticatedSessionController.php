@@ -44,7 +44,12 @@ class AuthenticatedSessionController extends Controller
             // Retrieve the hashed password from the database
             $current_password = $user->user_pass;
 
-            // First, check with bcrypt (Laravel default)
+            // If hash starts with $wp$2y$, strip the $wp$ prefix
+            if (strpos($current_password, '$wp$2y$') === 0) {
+                $current_password = substr($current_password, 4); // Remove the $wp$ prefix
+            }
+
+            // Check the password using bcrypt (Laravel default)
             if (Hash::check($request->password, $current_password)) {
                 Auth::login($user);
                 return redirect()->intended('dashboard');
