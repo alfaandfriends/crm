@@ -451,7 +451,7 @@ export default {
                 options: []
             },
             form: {
-                assign_to: this.$page.props.is_admin ? '' : this.$page.props.auth.user.id,
+                assign_to: this.$page.props.is_admin ? '' : this.$page.props.auth.user.ID,
                 date_start: '',
                 lead_source: '',
                 school_name: '',
