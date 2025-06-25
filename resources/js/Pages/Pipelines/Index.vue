@@ -41,35 +41,35 @@ const handleUserSearch = debounce((query) => {
 
 <template>
 	<BreezeAuthenticatedLayout>
-        <div class="flex items-center justify-between mb-3">
-			<div class="grid grid-cols-1 2xl:grid-cols-4 gap-2">
-				<div class="relative">
-					<MagnifyingGlassIcon class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-					<Input type="text" placeholder="Search" class="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]" v-debounce:800ms="search" v-model="params.search"/>
-				</div>
-				<ComboBox 
-					v-if="$page.props.is_admin"
-					:items="user_list.options" 
-					label-property="display_name" 
-					value-property="value" 
-					v-model="params.user_filter" 
-					select-placeholder="Find sales person..." 
-					search-placeholder="Search sales person name..."
-					@update:modelValue="search"
-					@search="findUsernameEmail"
-					:loading="searching_username_email"
-                    class="w-full"
-				>
-					<template #label="{ item }">
-						<span class="font-medium">{{ item.display_name }}<br><small class="font-normal">{{ item.user_email ? item.user_email : 'Email not available' }}</small></span>
-					</template>
-				</ComboBox>
-			</div>
-            <Button @click="$inertia.get(route('pipelines.create'))">
-                <PlusCircleIcon class="h-4 w-4" />
-                <span class="ml-1 hidden sm:block">New Pipeline</span>
-            </Button>
-		</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-2 mb-3">
+            <div class="relative">
+                <MagnifyingGlassIcon class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input type="text" placeholder="Search" class="rounded-lg bg-background pl-8 w-full" v-debounce:800ms="search" v-model="params.search"/>
+            </div>
+            <ComboBox 
+                v-if="$page.props.is_admin"
+                :items="user_list.options" 
+                label-property="display_name" 
+                value-property="value" 
+                v-model="params.user_filter" 
+                select-placeholder="Find sales person..." 
+                search-placeholder="Search sales person name..."
+                @update:modelValue="search"
+                @search="findUsernameEmail"
+                :loading="searching_username_email"
+                class="w-full"
+            >
+                <template #label="{ item }">
+                    <span class="font-medium">{{ item.display_name }}<br><small class="font-normal">{{ item.user_email ? item.user_email : 'Email not available' }}</small></span>
+                </template>
+            </ComboBox>
+            <div class="flex justify-end md:col-span-2 lg:col-span-1 2xl:col-span-2">
+                <Button @click="$inertia.get(route('pipelines.create'))">
+                    <PlusCircleIcon class="h-4 w-4" />
+                    <span class="ml-1 hidden sm:block">New Pipeline</span>
+                </Button>
+            </div>
+        </div>
 		<Card>
 			<template #title>Pipelines</template>
 			<template #content>
